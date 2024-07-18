@@ -1,13 +1,14 @@
-import '../css/global.css'
-import '../css/home.css'
-import '../css/menu.css'
-import '../css/container.css'
+import '../css/global.css';
+import '../css/home.css';
+import '../css/menu.css';
+import '../css/container.css';
 
-import React, { useState, useEffect, useCallback, FormEvent } from 'react';
+import React, { useState, useCallback, FormEvent } from 'react';
 
 // icons
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
+
 // imgs
 //@ts-expect-error ignorar img 
 import iconePadrao from '../img/iconePadrao.svg';
@@ -16,18 +17,18 @@ import iconeAdd_files from '../img/add_files.svg';
 
 // Components
 import ContactForm from '../components/ContactForm';
-import UserInfo from '../components/ContactList';
-import ContactList from '../components/UserInfo';
+import ContactList from '../components/ContactList';
+import UserInfo from '../components/UserInfo';
 
 // Custom Hooks
-import useUserInfo from '../hooks/useContacts';
-import useContacts from '../hooks/useUserInfo';
+import useUserInfo from '../hooks/useUserInfo';
+import useContacts from '../hooks/useContacts';
 
-const Home = () => {
+const Home: React.FC = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  
+
   const idUser = localStorage.getItem('USU_ID');
   const userInfo = useUserInfo(idUser);
   const { contacts, fetchContacts } = useContacts(idUser);

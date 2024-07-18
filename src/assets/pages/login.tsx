@@ -61,7 +61,8 @@ function LoginForm() {
     
             if (response.ok) {
                 const responseData = await response.json();
-                const { id, nome, img } = responseData.user;
+                const { id } = responseData.user;
+                localStorage.setItem('USU_ID', id);     
     
                 const Toast = Swal.mixin({
                     toast: true,
@@ -79,7 +80,7 @@ function LoginForm() {
                     title: "Você foi logado na sua conta"
                 });
     
-                const url = `/home/?id=${id}&nome=${nome}&img=${img}`;
+                const url = `/home`;
                 navigate(url);
             } else {
                 const Toast = Swal.mixin({

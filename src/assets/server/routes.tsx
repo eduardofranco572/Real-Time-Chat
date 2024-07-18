@@ -61,7 +61,7 @@ router.post('/addcontato', (req: Request, res: Response) => {
     }
 
     const idContato = result[0].id;
-    const sqlInsertContato = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
+    const sqlInsertContato = "INSERT INTO contatos (idUser, idUser, nomeContato) VALUES (?, ?, ?)";
 
     db.query(sqlInsertContato, [idUser, idContato, nome], (err) => {
       if (err) {

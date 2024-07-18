@@ -1,5 +1,7 @@
 import React, { FormEvent } from 'react';
 import { IoMdClose } from "react-icons/io";
+
+//@ts-expect-error ignorar img 
 import iconeAdd_files from '../img/add_files.svg';
 
 interface ContactFormProps {

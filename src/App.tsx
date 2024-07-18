@@ -2,8 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LoginForm from './assets/pages/login';
 import CadastroForm from './assets/pages/cadastrar';
-import Home from './assets/pages/home'; // Assumindo que você tem o arquivo home.tsx
-import ProtectedRoute from './assets/controllers/authenticator'; // Ajuste o caminho conforme necessário
+import Home from './assets/pages/home'; 
+import ProtectedRoute from './assets/controllers/authenticator';
 
 const App = () => {
     return (
@@ -19,6 +19,7 @@ const App = () => {
                 />
                 <Route path="/cadastrar" element={<CadastroForm />} />
                 <Route path="/login" element={<LoginForm />} />
+                <Route path="/home" element={<Home />} />
             </Routes>
         </Router>
     );
