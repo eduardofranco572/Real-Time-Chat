@@ -16,7 +16,7 @@ const UserInfo: React.FC<UserInfoProps> = ({ userInfo }) => {
         <img id="icone" src={iconePadrao} alt="Ícone Padrão" />
         <div className='textHM'>
           <h1>{userInfo.nome}</h1>
-          <p>{userInfo.descricao}</p>
+          <p>{userInfo.descricao}</p> 
         </div>
       </div>
     </div>

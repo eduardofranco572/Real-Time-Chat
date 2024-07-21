@@ -101,5 +101,30 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
 
 });
 
+router.post('/InfoUser', (req: Request, res: Response) => {
+  const { idUser } = req.body;
+
+  const sql = "SELECT * FROM usuario WHERE ID = ?";
+
+  db.query(sql, [idUser], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar dados dos usuários: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar dados dos usuários' });
+    }
+
+    if (results.length > 0) {
+      const { nome, descricao } = results[0];
+      res.send({
+        message: 'ok',
+        nome,
+        descricao
+      });
+    } else {
+      res.send({ message: 'Nenhum contato encontrado para o usuário' });
+    }
+  });
+});
+
+
 
 export default router;

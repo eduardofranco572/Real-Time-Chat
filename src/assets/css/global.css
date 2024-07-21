@@ -6,8 +6,10 @@
     --color-backSoft: #111111;
     --font-family: "Roboto", sans-serif;
     --background: #13121A;
-    --color-container: #24232B;
+    --color-container:#181818;
+    --color-container-clear: #292929;
     --color-green: #ABF7B6;
+    --color-subtitle: #898888;
 }
 
 *{
