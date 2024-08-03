@@ -2,7 +2,7 @@ import React, { FormEvent } from 'react';
 import { IoMdClose } from "react-icons/io";
 
 //@ts-expect-error ignorar img 
-import iconeAdd_files from '../img/add_files.svg';
+import IconeAddcontact from '../img/addcontact.svg';
 
 interface ContactFormProps {
   onClose: () => void;
@@ -21,7 +21,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose, onSubmit, email, set
           <button onClick={onClose}><IoMdClose /></button>
         </div>
         <div className='headerPUCad'>
-          <img src={iconeAdd_files} alt="" />
+          <img src={IconeAddcontact} alt="" />
           <div className='infosHPUCad'>
             <h1>Adicione um novo contato!</h1>
             <p>Preencha os dados abaixo para adicionar um novo contato à sua lista.</p>

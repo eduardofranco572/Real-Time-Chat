@@ -2,14 +2,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    height: 100%;
+    height: 30rem;
+    width: 32rem;
     background-color: var(--color-container);
     border-radius: 2rem;
+    padding: 1rem;
 }
 
-.conteinerLogar{
-    height: 30rem;
+.conteinerCadastrar{
+    height: 37rem;
+    width: 32rem;
 }
 
 form{
@@ -112,4 +114,12 @@ input:focus {
     user-select: none;
     font-size: 16px;
     margin-left: 6px;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

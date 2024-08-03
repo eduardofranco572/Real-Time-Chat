@@ -116,6 +116,120 @@
 }
 
 .headerPUCad img{
-    width: 7rem;
-    height: 7rem;
+    width: 12rem;
+    height: 12rem;
+}
+
+.btnClose{
+    display: flex;
+    justify-content: flex-end;
+    align-items: end;
+    width: 100%;
+}
+
+.btnClose button{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    margin: 1rem;
+}
+
+.btnClose button:hover{
+    transition: 0.2s;
+    transform: scale(1.2);
+}
+
+.btnClose button svg{
+    font-size: 26px;
+}
+
+.headerPUCad{
+    display: flex;
+    align-items: center;
+}
+
+.infosHPUCad{
+    margin-left: 2rem;
+}
+
+.barraPp{
+    margin-top: 2rem;
+    width: 90%;
+    height: 2px;
+    background-color: rgb(131 131 131);
+}
+
+.infosHPUCad p{
+    margin-top: 0.5rem;
+    font-size: 16px;
+    color: var(--color-subtitle);
+    max-width: 25rem;
+}
+
+.btnAddContato input {
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    width: 11rem;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.formPp{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.elementosFormPp{
+    margin-top: 1rem;
+}
+
+.inputFP{
+    width: 22rem;
+    padding: 9px;
+    border-radius: 3px;
+    border: none;
+    color: black;
+    margin-top: 5px;
+}
+
+.titlesInput{
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-white);
+}
+
+.btnAddContato{
+    margin-top: 3rem;
+}
+
+.elementsCont1{
+    display: flex;
+    align-items: center;
+}
+
+.elementsCont1 img{
+    width: 2rem;
+    height: 2rem;
+}
+
+.textCont1{
+    margin-left: 1rem;
+}
+
+.textCont1 h1{
+    font-size: 14px;
+}
+
+.textCont1 p{
+    font-size: 12px;
+}
+
+.contato{
+    margin-top: 1rem;
 }

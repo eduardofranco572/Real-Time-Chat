@@ -15,6 +15,9 @@ import iconePadrao from '../img/iconePadrao.svg';
 //@ts-expect-error ignorar img 
 import iconeAdd_files from '../img/add_files.svg';
 
+//@ts-expect-error ignorar img 
+import iconeChat from '../img/chat2.svg';
+
 // Components
 import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
@@ -108,7 +111,7 @@ const Home: React.FC = () => {
         </div>
         <div className='bodyContainer'>
           <div className='noContatos'>
-            <img src={iconeAdd_files} alt="" />
+            <img src={iconeChat} alt="" />
             <h1>Lorem ipsum dolor sit amet consectetur adipisicing elit.</h1>
           </div>
         </div>
