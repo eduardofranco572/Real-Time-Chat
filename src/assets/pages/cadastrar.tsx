@@ -54,38 +54,36 @@ function CadastroForm() {
     
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
       e.preventDefault();
-      // const formData = new FormData(e.target as HTMLFormElement);
       
-      const dataJSON = JSON.stringify({
-        email,
-        nome,
-        senha
-      })
-
+      const formData = new FormData();
+      formData.append('nome', nome);
+      formData.append('email', email);
+      formData.append('senha', senha);
+    
+      const fileInput = document.getElementById('img-input') as HTMLInputElement;
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        formData.append('img', fileInput.files[0]); 
+      }
+    
       try {
         const response = await fetch('http://localhost:3000/cadastrar', {
             method: 'POST',
-            body: dataJSON,
-            headers: {
-              'Content-Type': 'application/json' 
-            },
+            body: formData,
         });
-
-        const isOk = JSON.parse(await response.text());
-
-        if (isOk['message'] == 'ok') {
+    
+        const isOk = await response.json();
+    
+        if (isOk.message === 'ok') {
             alert('Cadastrado com sucesso');
-            console.log(dataJSON);
         } else {
-            alert('Cadastrado com erro');
-            console.log(dataJSON);
+            alert('Erro ao cadastrar');
         }
-
+    
       } catch (error) {
           console.error('Erro ao enviar formulário: ', error);
-          console.log(dataJSON);
       }
-    }
+    };
+    
   
   return (
     <>

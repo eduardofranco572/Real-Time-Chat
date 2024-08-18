@@ -4,7 +4,7 @@ import React from 'react';
 import iconePadrao from '../img/iconePadrao.svg';
 
 interface ContactListProps {
-  contacts: { nomeContato: string }[];
+  contacts: { nomeContato: string; imageUrl: string }[];
 }
 
 const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
@@ -14,7 +14,7 @@ const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
         {contacts.map((contato, index) => (
           <div className='contato' key={index}>
             <div className='elementsCont1'>
-              <img src={iconePadrao} alt="" />
+              <img src={contato.imageUrl || iconePadrao} alt="" />
               <div className='textCont1'>
                 <h1>{contato.nomeContato}</h1>
                 <p>Test example user.</p>

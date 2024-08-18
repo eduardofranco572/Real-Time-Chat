@@ -6,14 +6,19 @@ interface UserInfoProps {
   userInfo: {
     nome: string;
     descricao: string;
+    imageUrl: string;
   };
-}
+} 
 
 const UserInfo: React.FC<UserInfoProps> = ({ userInfo }) => {
   return (
     <div className='elementosMenu'>
       <div className='headerMenu'>
-        <img id="icone" src={iconePadrao} alt="Ícone Padrão" />
+      <img
+          id="icone"
+          src={userInfo.imageUrl || iconePadrao}
+          alt="Ícone do Usuário"
+        />
         <div className='textHM'>
           <h1>{userInfo.nome}</h1>
           <p>{userInfo.descricao}</p> 

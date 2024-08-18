@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 
+interface UserInfo {
+  nome: string;
+  descricao: string;
+  imageUrl: string;
+}
+
 const useUserInfo = (idUser: string | null) => {
-  const [userInfo, setUserInfo] = useState({ nome: '', descricao: '' });
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    nome: '',
+    descricao: '',
+    imageUrl: ''
+  });
 
   useEffect(() => {
     async function fetchUserInfo() {
@@ -24,6 +34,7 @@ const useUserInfo = (idUser: string | null) => {
           setUserInfo({
             nome: result.nome,
             descricao: result.descricao || 'Mensagem Padrão',
+            imageUrl: result.imageUrl || ''
           });
         }
       } catch (error) {

@@ -11,11 +11,6 @@ import { IoIosAddCircle } from "react-icons/io";
 
 // imgs
 //@ts-expect-error ignorar img 
-import iconePadrao from '../img/iconePadrao.svg';
-//@ts-expect-error ignorar img 
-import iconeAdd_files from '../img/add_files.svg';
-
-//@ts-expect-error ignorar img 
 import iconeChat from '../img/chat2.svg';
 
 // Components
@@ -66,7 +61,7 @@ const Home: React.FC = () => {
 
       if (result.message === 'ok') {
         alert('Adicionado com sucesso');
-        fetchContacts(); // Refresh contacts list
+        fetchContacts();
       } else {
         alert('Erro');
       }

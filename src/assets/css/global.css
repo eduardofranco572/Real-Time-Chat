@@ -26,7 +26,7 @@ body{
     /* background: -webkit-linear-gradient(115deg, #011e01,#000000);
     background: linear-gradient(115deg, #011e01,#000000);                                              
     background-repeat: no-repeat; */
-    background-color: var(--background);
+    background-color: var(--color-container);
     height: 100vh;
     display: flex;
     justify-content: center;

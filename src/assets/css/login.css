@@ -2,16 +2,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 30rem;
-    width: 32rem;
-    background-color: var(--color-container);
+    height: 27rem;
+    width: 27rem;
+    background-color: var(--color-container-clear);
     border-radius: 2rem;
     padding: 1rem;
 }
 
 .conteinerCadastrar{
     height: 37rem;
-    width: 32rem;
+    width: 29rem;
 }
 
 form{
