@@ -1,7 +1,11 @@
 import '../css/global.css'
 import '../css/login.css'
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { FormEvent, useState, useRef } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
+import AvatarEditor from 'react-avatar-editor';
+
+import { IoCloseOutline } from "react-icons/io5";
+
 //@ts-expect-error ignorar img 
 import iconePadrao from '../img/iconePadrao.svg';
 
@@ -11,8 +15,6 @@ function CadastroForm() {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
-
-    // const [user, setUser] = useState(null); 
 
     const validaEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
@@ -37,21 +39,51 @@ function CadastroForm() {
             e.target.style.borderColor = '#1CC88A';
         }
     }
-    const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
+
+    // imagem
+    const [image, setImage] = useState<string | null>(null);
+    const [scale, setScale] = useState<number>(1);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const editorRef = useRef<AvatarEditor>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
       const target = e.target as HTMLInputElement;
       if (target.files && target.files[0]) {
         const reader = new FileReader();
         reader.onload = (event) => {
           const result = event.target?.result as string;
-          const previewImg = document.getElementById('preview') as HTMLImageElement;
-          if (previewImg) {
-            previewImg.src = result;
-          }
+          setImage(result);
+          setIsEditing(true);
         };
         reader.readAsDataURL(target.files[0]);
       }
     };
-    
+
+    const handleContainerClick = () => {
+      const input = document.getElementById('img-input') as HTMLInputElement;
+      if (input) {
+        input.click();
+      }
+    };
+
+    const handleSave = () => {
+      if (editorRef.current) {
+        const canvas = editorRef.current.getImageScaledToCanvas();
+        const croppedImage = canvas.toDataURL();
+        const previewImg = document.getElementById('preview') as HTMLImageElement;
+        if (previewImg) {
+          previewImg.src = croppedImage;
+        }
+        setIsEditing(false);
+      }
+    };
+
+    const handleClosedEdit = () => {
+      setIsEditing(false);
+    };
+
+    //
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
       e.preventDefault();
       
@@ -87,12 +119,39 @@ function CadastroForm() {
   
   return (
     <>
+      {isEditing && (
+        <section className="edtImage" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className='closed' onClick={handleClosedEdit}><IoCloseOutline /></div>
+          <h1>Editar imagem</h1>
+          <div className='imageforedit'>
+            <AvatarEditor
+              ref={editorRef}
+              image={image!}
+              width={300} 
+              height={300}
+              color={[28, 28, 28, 0.6]}
+              scale={scale}
+              borderRadius={150}
+            />
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="2"
+            step="0.01"
+            value={scale}
+            onChange={(e) => setScale(parseFloat(e.target.value))}
+          />
+          <button className='brtsaveedimg' onClick={handleSave}>Save Image</button>
+        </section>
+      )}   
+
       <section className='conteinerCadastrar'>
         <form encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit}
         >
           <h1 className='titleForm'>Cadastrar</h1>
           <div className="img4-div">
-            <div className="contenerimg" id="img-container4">
+            <div className="contenerimg" id="img-container4" onClick={handleContainerClick}>
               <img id="preview" src={iconePadrao} alt="Ícone Padrão" />
             </div>
             <input
@@ -102,6 +161,7 @@ function CadastroForm() {
               name="img"
               accept="image/*"
               onChange={handleImageUpload}
+              style={{ display: 'none' }}
               required
             />
           </div>

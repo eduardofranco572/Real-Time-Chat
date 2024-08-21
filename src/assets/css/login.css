@@ -97,6 +97,8 @@ input:focus {
     border-radius: 50%;
     margin-bottom: 1rem;
     margin-top: 1rem;
+    cursor: pointer;
+    user-select: none;
 }
 
 .file{
@@ -122,4 +124,90 @@ input:focus {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.edtImage{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 74%;
+    width: 60%;
+    border-radius: 2rem;
+    padding: 1rem;
+    background-color: rgb(0 0 0 / 50%);
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, .25);
+    backdrop-filter: blur(5px);
+}
+
+.edtImage h1{
+    font-size: 23px;
+    font-weight: 600;
+}
+
+.imageforedit canvas{
+    border-radius: 1rem;
+    margin: 1rem 0 1rem 0;
+}
+
+input[type='range'] {
+    cursor: pointer;
+    width: 40%;
+    margin-top: 1rem;
+    background: #ffffff;
+    border-radius: 5px;
+}
+
+input[type='range'],
+input[type='range']::-webkit-slider-runnable-track,
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+    width: 200px;
+    height: 10px;
+
+    border-radius: 5px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -6.5px;
+    background-color: #222222;
+    border: 2px solid #535353;
+    border-radius: 60px;
+}
+
+.brtsaveedimg{
+    margin-top: 1rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    width: 12rem;
+    padding: 10px;
+    cursor: pointer;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.brtsaveedimg:hover, .closed svg:hover{
+    transition: 0.2s;
+    transform: scale(1.1);
+}
+
+.closed{
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.closed svg{
+    font-size: 34px;
+    cursor: pointer;
+    user-select: none;
 }
