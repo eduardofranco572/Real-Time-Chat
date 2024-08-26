@@ -69,12 +69,23 @@ function CadastroForm() {
     const handleSave = () => {
       if (editorRef.current) {
         const canvas = editorRef.current.getImageScaledToCanvas();
-        const croppedImage = canvas.toDataURL();
-        const previewImg = document.getElementById('preview') as HTMLImageElement;
-        if (previewImg) {
-          previewImg.src = croppedImage;
-        }
-        setIsEditing(false);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const previewImg = document.getElementById('preview') as HTMLImageElement;
+            if (previewImg) {
+              previewImg.src = URL.createObjectURL(blob);
+            }
+            setIsEditing(false);
+
+            const imgInput = document.getElementById('cropped-img') as HTMLInputElement;
+            if (imgInput) {
+              const file = new File([blob], "croppedImage.png", { type: blob.type });
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              imgInput.files = dataTransfer.files;
+            }
+          }   
+        }, 'image/png');
       }
     };
 
@@ -92,9 +103,9 @@ function CadastroForm() {
       formData.append('email', email);
       formData.append('senha', senha);
     
-      const fileInput = document.getElementById('img-input') as HTMLInputElement;
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        formData.append('img', fileInput.files[0]); 
+      const croppedImgInput = document.getElementById('cropped-img') as HTMLInputElement;
+      if (croppedImgInput && croppedImgInput.files && croppedImgInput.files[0]) {
+        formData.append('img', croppedImgInput.files[0]); 
       }
     
       try {
@@ -147,8 +158,7 @@ function CadastroForm() {
       )}   
 
       <section className='conteinerCadastrar'>
-        <form encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit}
-        >
+        <form encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit}>
           <h1 className='titleForm'>Cadastrar</h1>
           <div className="img4-div">
             <div className="contenerimg" id="img-container4" onClick={handleContainerClick}>
@@ -163,6 +173,11 @@ function CadastroForm() {
               onChange={handleImageUpload}
               style={{ display: 'none' }}
               required
+            />
+            <input
+              type="file"
+              id="cropped-img"
+              style={{ display: 'none' }}
             />
           </div>
           <input
