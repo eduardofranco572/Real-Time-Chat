@@ -1,8 +1,9 @@
 import '../css/global.css'
 import '../css/login.css'
 import React, { FormEvent, useState, useRef } from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate  } from 'react-router-dom';
 import AvatarEditor from 'react-avatar-editor';
+import Swal from 'sweetalert2'
 
 import { IoCloseOutline } from "react-icons/io5";
 
@@ -15,6 +16,9 @@ function CadastroForm() {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+    const [isEmailValid, setIsEmailValid] = useState<boolean>(false);
+    const [isSenhaValid, setIsSenhaValid] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     const validaEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
@@ -23,8 +27,10 @@ function CadastroForm() {
     
         if (!isValid) {
             e.target.style.borderColor = 'red';
+            setIsEmailValid(false);
         } else {
             e.target.style.borderColor = '#1CC88A';
+            setIsEmailValid(true);
         }
     }
     
@@ -35,8 +41,10 @@ function CadastroForm() {
     
         if (!isValid) {
             e.target.style.borderColor = 'red';
+            setIsSenhaValid(false);
         } else {
             e.target.style.borderColor = '#1CC88A';
+            setIsSenhaValid(true);
         }
     }
 
@@ -93,11 +101,9 @@ function CadastroForm() {
       setIsEditing(false);
     };
 
-    //
-
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
       e.preventDefault();
-      
+
       const formData = new FormData();
       formData.append('nome', nome);
       formData.append('email', email);
@@ -110,16 +116,44 @@ function CadastroForm() {
     
       try {
         const response = await fetch('http://localhost:3000/cadastrar', {
-            method: 'POST',
-            body: formData,
+          method: 'POST',
+          body: formData,
         });
     
         const isOk = await response.json();
     
         if (isOk.message === 'ok') {
-            alert('Cadastrado com sucesso');
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+          Toast.fire({
+            icon: "success",
+            title: "Cadastrado com sucesso"
+          });
+
+          navigate('/login');
+
+        } else if(isOk.message === 'email'){
+          Swal.fire({
+            icon: "error",
+            title: "E-mail já cadastrado!",
+            text: "Este endereço de e-mail já esta cadastrado no nosso sistema faço o login para continuar!",
+          });
+
         } else {
-            alert('Erro ao cadastrar');
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Algum erro inesperado tente novamente, e confira seus dados estão corretos!",
+          });
         }
     
       } catch (error) {
@@ -127,7 +161,6 @@ function CadastroForm() {
       }
     };
     
-  
   return (
     <>
       {isEditing && (
@@ -219,7 +252,7 @@ function CadastroForm() {
               </Routes>
           </div>
           <div className="button">
-            <input type="submit" value="Cadastrar" />
+          <input type="submit" value="Cadastrar" disabled={!isEmailValid || !isSenhaValid} />
           </div>
         </form>
 

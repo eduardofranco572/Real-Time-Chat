@@ -26,22 +26,37 @@ const upload = multer({ storage: storage });
 router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
   const imgPath = req.file ? req.file.filename : null;
-  
+
   console.log('NOME \n' + JSON.stringify(req.body));
 
   try {
-    const sql: string = "INSERT INTO usuario (nome, email, senha, img) VALUES ('" + nome + "', '" + email + "', '" + senha + "', '" + imgPath + "')";
-    db.query(sql, (err) => {
+    const checkEmailSql: string = "SELECT COUNT(*) AS count FROM usuario WHERE email = ?";
+    db.query(checkEmailSql, [email], (err, results) => {
       if (err) {
-        console.error('Erro ao cadastrar usuário: ', err);
-        res.status(500).send({ error: 'Erro ao cadastrar usuário' });
+        console.error('Erro ao verificar email:', err);
+        res.status(500).send({ error: 'Erro ao verificar email' });
         return;
       }
+
+      if (results[0].count > 0) {
+        res.status(400).send({ message: 'email' });
+        return;
+      }
+
+      const insertSql: string = "INSERT INTO usuario (nome, email, senha, img) VALUES (?, ?, ?, ?)";
+      db.query(insertSql, [nome, email, senha, imgPath], (err) => {
+        if (err) {
+          console.error('Erro ao cadastrar usuário:', err);
+          res.status(500).send({ error: 'Erro ao cadastrar usuário' });
+          return;
+        }
+
+        res.send({ message: 'ok' });
+      });
     });
-    res.send({ message: 'ok' });
   } catch (error) {
     console.error('Erro durante o cadastro:', error);
-    res.status(500).send({ error: 'Erro interno durante o cadastro\n ' });
+    res.status(500).send({ error: 'Erro interno durante o cadastro' });
   }
 });
 

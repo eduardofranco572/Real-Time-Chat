@@ -1,3 +1,7 @@
+body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+    height: 100vh !important;
+}
+
 .conteinerCadastrar, .conteinerLogar{
     display: flex;
     flex-direction: column;
@@ -116,6 +120,7 @@ input:focus {
     user-select: none;
     font-size: 16px;
     margin-left: 6px;
+    font-weight: 600;
 }
 
 #root {
