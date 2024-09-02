@@ -1,10 +1,15 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction }  from 'express';
 import db from './db';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 const router = express.Router();
+const SECRET_KEY = 'your_secret_key';
+
+router.use(cookieParser());
 
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
@@ -63,8 +68,8 @@ router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) =>
 router.post('/login', (req: Request, res: Response) => {
   const { email, senha } = req.body;
 
-  const sql: string = "SELECT id, nome, img FROM usuario WHERE email = '" + email + "' AND senha = '" + senha + "'";
-  db.query(sql, (err, result) => {
+  const sql: string = "SELECT id, nome, img FROM usuario WHERE email = ? AND senha = ?";
+  db.query(sql, [email, senha], (err, result) => {
     if (err) {
       console.error('Erro ao realizar login: ', err);
       return res.status(500).send('Erro ao realizar login');
@@ -72,12 +77,58 @@ router.post('/login', (req: Request, res: Response) => {
 
     if (result.length > 0) {
       const user = result[0];
+      const id = user.id
+      const token = jwt.sign({ id: user.id }, SECRET_KEY);
+      console.log('Token:', token);
+
+      res.cookie('authToken', token, {
+        httpOnly: true, 
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+
       console.log('Usuário logado com sucesso:', user);
-      res.send({ message: 'ok', user });
+      res.send({ message: 'ok', id });
     } else {
       res.status(401).send('Credenciais inválidas');
     }
   });
+});
+
+//autenticação de usuário
+interface MyJwtPayload extends JwtPayload {
+  id: number;
+}
+
+interface CustomRequest extends Request {
+  user?: MyJwtPayload | string;
+}
+
+const authenticateJWT = (req: CustomRequest, res: Response, next: NextFunction) => {
+  const token = req.cookies.authToken;
+  console.log('token:', token);
+  // if (!token) {
+  //     return res.status(401).json({ message: 'Access denied' });
+  // }
+  try {
+      const decoded = jwt.verify(token, SECRET_KEY) as MyJwtPayload; 
+      req.user = decoded;
+      next();
+  } catch (err) {
+      return res.status(403).json({ message: 'Invalid token' });
+  }
+};
+
+router.get('/protected', authenticateJWT, (req: CustomRequest, res: Response) => {
+  if (typeof req.user === 'object' && req.user !== null && 'id' in req.user) {
+    const userId = (req.user as MyJwtPayload).id;
+    res.status(201).json({ 
+      message: 'Rota para autenticação de usuário!', 
+      user: userId 
+    });
+  } else {
+    res.status(401).json({ message: 'Usuário não autenticado' });
+  }
 });
 
 router.post('/addcontato', (req: Request, res: Response) => {

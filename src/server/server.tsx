@@ -11,8 +11,9 @@ app.use(bodyParser.json());
 
 // Configuração do CORS
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH']
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+  credentials: true
 }));
 
 app.use('/', router);

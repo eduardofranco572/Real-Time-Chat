@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import LoginForm from './assets/pages/login';
-import CadastroForm from './assets/pages/cadastrar';
-import Home from './assets/pages/home'; 
-import ProtectedRoute from './assets/controllers/authenticator';
+import LoginForm from './pages/login';
+import CadastroForm from './pages/cadastrar';
+import Home from './pages/home'; 
+import ProtectedRoute from './controllers/ProtectedRoute';
+// import PublicRoute from './assets/controllers/PublicRoute';
 
 const App = () => {
     return (
@@ -18,12 +19,18 @@ const App = () => {
                     }
                 />
                 <Route path="/cadastrar" element={<CadastroForm />} />
+                <Route
+                    path="/home"
+                    element={
+                        <ProtectedRoute>
+                            <Home />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route path="/login" element={<LoginForm />} />
-                <Route path="/home" element={<Home />} />
             </Routes>
         </Router>
     );
 };
 
 export default App;
-

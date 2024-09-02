@@ -1,9 +1,9 @@
-import '../css/global.css';
-import '../css/home.css';
-import '../css/menu.css';
-import '../css/container.css';
+import '../assets/css/global.css';
+import '../assets/css/home.css';
+import '../assets/css/menu.css';
+import '../assets/css/container.css';
 
-import React, { useState, useCallback, FormEvent } from 'react';
+import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 
 // icons
 import { IoSearchOutline } from "react-icons/io5";
@@ -11,7 +11,7 @@ import { IoIosAddCircle } from "react-icons/io";
 
 // imgs
 //@ts-expect-error ignorar img 
-import iconeChat from '../img/chat2.svg';
+import iconeChat from '../assets/img/chat2.svg';
 
 // Components
 import ContactForm from '../components/ContactForm';
@@ -27,7 +27,34 @@ const Home: React.FC = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
 
-  const idUser = localStorage.getItem('USU_ID');
+  const [idUser, setidUser] = useState<number | null>(null);
+
+  useEffect(() => {
+    const requestOptions: RequestInit = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    };
+
+    const fetchUserId = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/protected', requestOptions);
+        if (response.ok) {
+          const data = await response.json();
+          setidUser(data.user);
+        } else {
+          console.log('Falha ao buscar o ID do usuário');
+        }
+      } catch (error) {
+        console.log('Erro ao buscar o ID do usuário:', error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
   const userInfo = useUserInfo(idUser);
   const { contacts, fetchContacts } = useContacts(idUser);
 

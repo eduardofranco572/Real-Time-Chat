@@ -1,6 +1,6 @@
 import React from 'react';
 //@ts-expect-error ignorar img 
-import iconePadrao from '../img/iconePadrao.svg';
+import iconePadrao from '../assets/img/iconePadrao.svg';
 
 interface UserInfoProps {
   userInfo: {

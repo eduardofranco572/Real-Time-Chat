@@ -2,7 +2,7 @@ import React, { FormEvent } from 'react';
 import { IoMdClose } from "react-icons/io";
 
 //@ts-expect-error ignorar img 
-import IconeAddcontact from '../img/addcontact.svg';
+import IconeAddcontact from '../assets/img/addcontact.svg';
 
 interface ContactFormProps {
   onClose: () => void;

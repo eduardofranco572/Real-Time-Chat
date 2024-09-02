@@ -1,5 +1,5 @@
-import '../css/global.css'
-import '../css/login.css'
+import '../assets/css/global.css'
+import '../assets/css/login.css'
 import React, { FormEvent, useState, useRef } from 'react';
 import { Link, Route, Routes, useNavigate  } from 'react-router-dom';
 import AvatarEditor from 'react-avatar-editor';
@@ -8,7 +8,7 @@ import Swal from 'sweetalert2'
 import { IoCloseOutline } from "react-icons/io5";
 
 //@ts-expect-error ignorar img 
-import iconePadrao from '../img/iconePadrao.svg';
+import iconePadrao from '../assets/img/iconePadrao.svg';
 
 import LoginForm from './login';
 

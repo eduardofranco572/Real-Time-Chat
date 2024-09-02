@@ -1,5 +1,5 @@
-import '../css/global.css'
-import '../css/login.css'
+import '../assets/css/global.css'
+import '../assets/css/login.css'
 import React, { useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2'
@@ -11,7 +11,6 @@ function LoginForm() {
     const [senha, setSenha] = useState('');
     
     const navigate = useNavigate();
-    // const [user, setUser] = useState(null); 
 
     const validaEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
@@ -44,7 +43,7 @@ function LoginForm() {
         const dataJSON = JSON.stringify({
             email,
             senha
-        })
+        });
     
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -53,17 +52,14 @@ function LoginForm() {
             method: 'POST',
             headers: myHeaders,
             body: dataJSON,
-            redirect: 'follow'
+            redirect: 'follow',
+            credentials: 'include'  // Certifique-se de que os cookies sejam enviados e recebidos
         };
     
         try {
             const response = await fetch('http://localhost:3000/login', requestOptions);
     
             if (response.ok) {
-                const responseData = await response.json();
-                const { id } = responseData.user;
-                localStorage.setItem('USU_ID', id);     
-    
                 const Toast = Swal.mixin({
                     toast: true,
                     position: "top-end",
@@ -79,6 +75,10 @@ function LoginForm() {
                     icon: "success",
                     title: "Você foi logado na sua conta"
                 });
+
+                const responseData = await response.json();
+                const {id} = responseData;
+                localStorage.setItem('USU_ID', id);
     
                 const url = `/home`;
                 navigate(url);
@@ -103,6 +103,7 @@ function LoginForm() {
             console.error('Erro ao fazer requisição:', error);
         }
     };
+    
     
   return (
     <>

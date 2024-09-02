@@ -8,17 +8,19 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "tsx watch src/assets/server/server.tsx"
+    "server": "tsx watch src/server/server.tsx"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
     "@types/node": "^20.12.7",
     "@types/react-router-dom": "^5.3.3",
     "body-parser": "^1.20.2",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "fastify": "^4.26.2",
     "fastify-multipart": "^5.4.0",
+    "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "react": "^18.2.0",
@@ -31,9 +33,11 @@
   },
   "devDependencies": {
     "@rollup/plugin-image": "^3.0.3",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/fastify-multipart": "^0.7.0",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
     "@types/mysql": "^2.15.26",
     "@types/react": "^18.2.66",

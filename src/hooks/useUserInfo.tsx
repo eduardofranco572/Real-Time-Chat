@@ -6,7 +6,7 @@ interface UserInfo {
   imageUrl: string;
 }
 
-const useUserInfo = (idUser: string | null) => {
+const useUserInfo = (idUser: number | string | null) => {
   const [userInfo, setUserInfo] = useState<UserInfo>({
     nome: '',
     descricao: '',
