@@ -79,7 +79,6 @@ router.post('/login', (req: Request, res: Response) => {
       const user = result[0];
       const id = user.id
       const token = jwt.sign({ id: user.id }, SECRET_KEY);
-      console.log('Token:', token);
 
       res.cookie('authToken', token, {
         httpOnly: true, 
@@ -106,7 +105,6 @@ interface CustomRequest extends Request {
 
 const authenticateJWT = (req: CustomRequest, res: Response, next: NextFunction) => {
   const token = req.cookies.authToken;
-  console.log('token:', token);
   // if (!token) {
   //     return res.status(401).json({ message: 'Access denied' });
   // }

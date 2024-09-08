@@ -12,31 +12,6 @@ function LoginForm() {
     
     const navigate = useNavigate();
 
-    const validaEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value);
-        const regexEmail = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        
-        const isValid = e.target.value.length >= 8 && regexEmail.test(e.target.value);
-    
-        if (!isValid) {
-            e.target.style.borderColor = 'red';
-        } else {
-            e.target.style.borderColor = '#1CC88A';
-        }
-    }
-    
-    const validaSenha = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSenha(e.target.value);
-        const regexSenha = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W+)(?=^.{6,50}$).*/g;
-        const isValid = e.target.value.length >= 8 && regexSenha.test(e.target.value);
-    
-        if (!isValid) {
-            e.target.style.borderColor = 'red';
-        } else {
-            e.target.style.borderColor = '#1CC88A';
-        }
-    }
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
     
@@ -53,7 +28,7 @@ function LoginForm() {
             headers: myHeaders,
             body: dataJSON,
             redirect: 'follow',
-            credentials: 'include'  // Certifique-se de que os cookies sejam enviados e recebidos
+            credentials: 'include' 
         };
     
         try {
@@ -117,7 +92,7 @@ function LoginForm() {
                 name="email"
                 placeholder="Digite seu email"
                 value={email}
-                onChange={validaEmail}
+                onChange={(e) => setEmail(e.target.value)}
                 required
             />
             <input
@@ -126,7 +101,7 @@ function LoginForm() {
                 name="senha"
                 placeholder="Digite sua Senha"
                 value={senha}
-                onChange={validaSenha}
+                onChange={(e) => setSenha(e.target.value)}
                 required
             />
             <div className="cadastro">
