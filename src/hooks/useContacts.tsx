@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 
+interface Contact {
+  id: number;
+  nomeContato: string;
+  imageUrl: string;
+}
+
 const useContacts = (idUser: number | string | null) => {
-  const [contacts, setContacts] = useState<{nomeContato: string, imageUrl: string}[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
   const fetchContacts = useCallback(async () => {
     if (!idUser) return;

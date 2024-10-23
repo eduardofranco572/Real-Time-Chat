@@ -32,8 +32,6 @@ router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) =>
   const { nome, email, senha } = req.body;
   const imgPath = req.file ? req.file.filename : null;
 
-  console.log('NOME \n' + JSON.stringify(req.body));
-
   try {
     const checkEmailSql: string = "SELECT COUNT(*) AS count FROM usuario WHERE email = ?";
     db.query(checkEmailSql, [email], (err, results) => {
@@ -105,9 +103,6 @@ interface CustomRequest extends Request {
 
 const authenticateJWT = (req: CustomRequest, res: Response, next: NextFunction) => {
   const token = req.cookies.authToken;
-  // if (!token) {
-  //     return res.status(401).json({ message: 'Access denied' });
-  // }
   try {
       const decoded = jwt.verify(token, SECRET_KEY) as MyJwtPayload; 
       req.user = decoded;
@@ -131,7 +126,6 @@ router.get('/protected', authenticateJWT, (req: CustomRequest, res: Response) =>
 
 router.post('/addcontato', (req: Request, res: Response) => {
   const { email, nome, idUser } = req.body;
-  console.log(JSON.stringify(req.body));
 
   const sqlCheckEmail = "SELECT id FROM usuario WHERE email = ?";
 
@@ -182,6 +176,7 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
     
     if (results.length > 0) {
       const contatos = results.map((contato) => ({
+        id: contato.idContato,
         nomeContato: contato.nomeContato,
         imageUrl: contato.img ? `../../upload/${contato.img}` : ''
       }));
@@ -194,7 +189,6 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
       res.send({ message: 'Nenhum contato encontrado para o usuário' });
     }
   });
-
 });
 
 router.post('/InfoUser', (req: Request, res: Response) => {

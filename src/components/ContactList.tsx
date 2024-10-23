@@ -4,15 +4,16 @@ import React from 'react';
 import iconePadrao from '../assets/img/iconePadrao.svg';
 
 interface ContactListProps {
-  contacts: { nomeContato: string; imageUrl: string }[];
+  contacts: { nomeContato: string; imageUrl: string; id: number }[];
+  onSelectContact: (id: number) => void;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, onSelectContact }) => {
   return (
     <div className='contatos'>
       <div className='cont1' id='cont1'>
         {contacts.map((contato, index) => (
-          <div className='contato' key={index}>
+          <div className='contato' key={index} onClick={() => onSelectContact(contato.id)}>
             <div className='elementsCont1'>
               <img src={contato.imageUrl || iconePadrao} alt="" />
               <div className='textCont1'>
@@ -25,6 +26,6 @@ const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
       </div>
     </div>
   );
-}
+};
 
 export default ContactList;

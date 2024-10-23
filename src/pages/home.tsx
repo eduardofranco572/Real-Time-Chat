@@ -5,7 +5,6 @@ import '../assets/css/container.css';
 
 import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 
-// icons
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 
@@ -13,12 +12,11 @@ import { IoIosAddCircle } from "react-icons/io";
 //@ts-expect-error ignorar img 
 import iconeChat from '../assets/img/chat2.svg';
 
-// Components
 import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
+import Chat from '../components/Chat';
 
-// Custom Hooks
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
 
@@ -26,8 +24,8 @@ const Home: React.FC = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-
   const [idUser, setidUser] = useState<number | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
 
   useEffect(() => {
     const requestOptions: RequestInit = {
@@ -66,7 +64,7 @@ const Home: React.FC = () => {
     setIsFormVisible(true);
   }, []);
 
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     const dataJSON = JSON.stringify({
@@ -87,7 +85,8 @@ const Home: React.FC = () => {
       const result = await response.json();
 
       if (result.message === 'ok') {
-        alert('Adicionado com sucesso');
+        setEmail('');
+        setNome('');
         fetchContacts();
       } else {
         alert('Erro');
@@ -97,10 +96,17 @@ const Home: React.FC = () => {
     }
   }, [email, nome, idUser, fetchContacts]);
 
+  // Pegar informações do chat atual
+  const handleSelectContact = (id: number) => {
+    setSelectedContactId(id);
+    console.log("Selected contact ID:", id);
+    setIsFormVisible(false);
+  };
+
   return (
     <>
       {isFormVisible && (
-        <ContactForm 
+        <ContactForm
           onClose={handleBtnClose}
           onSubmit={handleSubmit}
           email={email}
@@ -126,16 +132,21 @@ const Home: React.FC = () => {
               />
             </div>
           </div>
-          <ContactList contacts={contacts} />
+
+          <ContactList contacts={contacts} onSelectContact={handleSelectContact} />
           <div className='footerMenu'>
             <span onClick={handleBtnOpen}><IoIosAddCircle /></span>
           </div>
         </div>
         <div className='bodyContainer'>
-          <div className='noContatos'>
-            <img src={iconeChat} alt="" />
-            <h1>Lorem ipsum dolor sit amet consectetur adipisicing elit.</h1>
-          </div>
+          {selectedContactId ? (
+            <Chat selectedContactId={selectedContactId} />
+          ) : (
+            <div className='noContatos'>
+              <img src={iconeChat} alt="" />
+              <h1>Lorem ipsum dolor sit amet consectetur adipisicing elit.</h1>
+            </div>
+          )}
         </div>
       </section>
     </>
