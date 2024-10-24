@@ -203,13 +203,14 @@ router.post('/InfoUser', (req: Request, res: Response) => {
     }
 
     if (results.length > 0) {
-      const { nome, descricao, img } = results[0];
+      const { nome, descricao, img, email } = results[0];
       const imageUrl = img ? `../../upload/${img}` : '';
       res.send({
         message: 'ok',
         nome,
         descricao,
-        imageUrl
+        imageUrl,
+        email
       });
     } else {
       res.send({ message: 'Nenhum contato encontrado para o usuário' });

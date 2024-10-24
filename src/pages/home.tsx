@@ -26,6 +26,7 @@ const Home: React.FC = () => {
   const [email, setEmail] = useState('');
   const [idUser, setidUser] = useState<number | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
+  const [showContactDetails, setShowContactDetails] = useState(false);
 
   useEffect(() => {
     const requestOptions: RequestInit = {
@@ -99,7 +100,7 @@ const Home: React.FC = () => {
   // Pegar informações do chat atual
   const handleSelectContact = (id: number) => {
     setSelectedContactId(id);
-    console.log("Selected contact ID:", id);
+    setShowContactDetails(false);
     setIsFormVisible(false);
   };
 
@@ -140,7 +141,11 @@ const Home: React.FC = () => {
         </div>
         <div className='bodyContainer'>
           {selectedContactId ? (
-            <Chat selectedContactId={selectedContactId} />
+            <Chat
+              selectedContactId={selectedContactId}
+              showContactDetails={showContactDetails}
+              setShowContactDetails={setShowContactDetails}
+            />
           ) : (
             <div className='noContatos'>
               <img src={iconeChat} alt="" />

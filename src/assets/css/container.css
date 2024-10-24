@@ -29,3 +29,120 @@
     width: 17rem;
     height: 17rem;
 }
+
+.chat-container{
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.headerChat{
+    width: 100%;
+    height: 4rem;
+    background-color: #474747;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.infosChat{
+    display: flex;
+    align-items: center;
+}
+
+.IconeContatoChat img{
+    width: 3rem;
+    height: 3rem;
+    border-radius: 100%;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 1rem;
+}
+
+.infosContatoChat{
+    margin-left: 1rem;
+}
+
+.infosContatoChat h1, .headerDC h1{
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--color-white);
+}
+
+.infosContatoChat p{
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-subtitle);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 13rem; 
+}
+
+.opcoesChat{
+    margin-right: 2rem;
+}
+
+.opcoesChat svg{
+    font-size: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.DadosContato{
+    width: 50%;
+    display: flex;
+    align-items: flex-start;
+    background-color: var(--color-container);
+}
+
+.bodyDC{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    margin: 1rem;
+}
+
+.headerDC{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.headerDC button{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.headerDC button svg{
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.headerDC button svg:hover{
+    transition: 0.2s;
+    transform: scale(1.2);
+}
+
+.infosDC{
+    margin-top: 2rem;
+}
+
+.detalhesUser{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detalhesUser img{
+    width: 16rem;
+    height: 16rem;
+    border-radius: 100%;
+    user-select: none;
+}
