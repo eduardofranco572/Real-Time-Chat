@@ -145,7 +145,9 @@ const Home: React.FC = () => {
               selectedContactId={selectedContactId}
               showContactDetails={showContactDetails}
               setShowContactDetails={setShowContactDetails}
+              idUser={idUser} 
             />
+          
           ) : (
             <div className='noContatos'>
               <img src={iconeChat} alt="" />

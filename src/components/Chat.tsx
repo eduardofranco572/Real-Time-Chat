@@ -6,39 +6,40 @@ interface ChatProps {
   selectedContactId: number | null;
   showContactDetails: boolean;
   setShowContactDetails: (visible: boolean) => void;
+  idUser: number | null; 
 }
 
 interface ContactInfo {
   nome: string;
-  descricao: string;
-  imageUrl: string;
   email: string;
+  img?: string;
+  nomeContato: string;
+  imageUrl: string;
+  descricao: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails }) => {
+const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails, idUser }) => {
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
-
+  
   useEffect(() => {
-    if (!selectedContactId) return;
+    if (!selectedContactId || !idUser) return;
 
     const fetchContactInfo = async () => {
       try {
-        const response = await fetch('http://localhost:3000/InfoUser', {
+        const response = await fetch('http://localhost:3000/InfoContato', {
           method: 'POST',
-          body: JSON.stringify({ idUser: selectedContactId }),
+          body: JSON.stringify({ idUser, idContato: selectedContactId }),
           headers: {
             'Content-Type': 'application/json',
           },
         });
-
+  
         const result = await response.json();
-
+  
         if (result.message === 'ok') {
           setContactInfo({
-            nome: result.nome,
-            descricao: result.descricao || 'No description available',
+            ...result,
             imageUrl: result.imageUrl || '',
-            email : result.email 
           });
         }
       } catch (error) {
@@ -65,7 +66,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             <img src={contactInfo.imageUrl} alt={contactInfo.nome} />
           </div>
           <div className='infosContatoChat'>
-            <h1>{contactInfo.nome}</h1>
+            <h1>{contactInfo.nomeContato}</h1>
             <p>{contactInfo.descricao}</p>
           </div>
         </div>
@@ -81,13 +82,12 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
               <button onClick={handleHideDetails}><IoMdClose /></button>
             </div>
             <div className='infosDC'>
-                <div className='detalhesUser'>
-                  <img src={contactInfo.imageUrl} alt={contactInfo.nome} />
-                  <h1>{contactInfo.nome}</h1>
-                  <p>{contactInfo.email}</p>
-                </div>
+              <div className='detalhesUser'>
+                <img src={contactInfo.imageUrl} alt={contactInfo.nomeContato} />
+                <h1>{contactInfo.nomeContato}</h1>
+                <p>{contactInfo.email}</p>
+              </div>
             </div>
-
           </div>
         </div>
       )}

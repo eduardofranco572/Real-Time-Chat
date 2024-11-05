@@ -218,5 +218,37 @@ router.post('/InfoUser', (req: Request, res: Response) => {
   });
 });
 
+router.post('/InfoContato', (req: Request, res: Response) => {
+  const { idUser, idContato } = req.body;
+
+  const sql = `
+    SELECT U.*, C.nomeContato
+    FROM contatos C
+    INNER JOIN usuario U ON U.ID = C.idContato
+    WHERE C.idUser = ? AND C.idContato = ?;
+  `;
+
+  db.query(sql, [idUser, idContato], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar dados do contato: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar dados do contato' });
+    }
+
+    if (results.length > 0) {
+      const contatoData = results[0];
+      const imageUrl = contatoData.img ? `../../upload/${contatoData.img}` : '';
+
+      res.send({
+        message: 'ok',
+        ...contatoData,
+        imageUrl
+      });
+    } else {
+      res.send({ message: 'Contato não encontrado' });
+    }
+  });
+});
+
+
 
 export default router;
