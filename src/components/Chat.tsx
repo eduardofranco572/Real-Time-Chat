@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { IoMdMore } from "react-icons/io";
 import { IoMdClose } from "react-icons/io";
+import { MdAdd } from "react-icons/md";
+import { AiFillAudio } from "react-icons/ai";
+import { IoMdSend } from "react-icons/io";
 
 interface ChatProps {
   selectedContactId: number | null;
@@ -59,20 +62,43 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
   }
 
   return (
-    <div className='chat-container'>
-      <div className='headerChat'>
-        <div className='infosChat'>
-          <div className='IconeContatoChat' onClick={() => setShowContactDetails(!showContactDetails)}>
-            <img src={contactInfo.imageUrl} alt={contactInfo.nome} />
+    <section className='chat-container'>
+      <div className='alinhaCO'>
+        <section className='headerChat'>
+          <div className='infosChat'>
+            <div className='IconeContatoChat' onClick={() => setShowContactDetails(!showContactDetails)}>
+              <img src={contactInfo.imageUrl} alt={contactInfo.nome} />
+            </div>
+            <div className='infosContatoChat'>
+              <h1>{contactInfo.nomeContato}</h1>
+              <p>{contactInfo.descricao}</p>
+            </div>
           </div>
-          <div className='infosContatoChat'>
-            <h1>{contactInfo.nomeContato}</h1>
-            <p>{contactInfo.descricao}</p>
+          <div className='opcoesChat'>
+            <IoMdMore />
+          </div>  
+        </section>
+        <section className='Chat'>
+
+        </section>
+        <section className='footerChat'>
+          <div className='infoFC'>
+            <div className='topico2'>
+              <MdAdd />
+            </div>
+            <input
+              className="inputinfosFC"
+              type="text"
+              name="mensagem"
+              placeholder="Digite uma mensagem"
+              //onChange={(e) => setNome(e.target.value)}
+            />
+            <div className='topico2'>
+              <AiFillAudio />
+              <IoMdSend />
+            </div>
           </div>
-        </div>
-        <div className='opcoesChat'>
-          <IoMdMore />
-        </div>  
+        </section>
       </div>
       {showContactDetails && (
         <div className='DadosContato'>
@@ -90,8 +116,8 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             </div>
           </div>
         </div>
-      )}
-    </div>
+      )} 
+    </section> 
   );
 };
 
