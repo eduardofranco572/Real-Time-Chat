@@ -8,9 +8,9 @@
 
 .elementosMenu{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    width: 100%;
+    width: 90%;
     margin-left: 1rem;
 }
 
@@ -18,7 +18,6 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    width: 100%;
 }
 
 .headerMenu img{
@@ -83,7 +82,6 @@
     flex-direction: column;
     justify-content: flex-end;
     align-items: center;
-    height: 100%;
     width: 100%;
     margin-bottom: 1rem;
 }
@@ -266,4 +264,71 @@
 
 .cont1{
     width: 100%;
+}
+
+.btnStatus svg, 
+.cabecalhoStatus svg{
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.abaStatus{
+    height: 100%;
+    width: 100%;
+}
+
+.cabecalhoStatus{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0rem 1rem 0rem 1rem;
+}
+
+.cabecalhoStatus h1{
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.seusStatus{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 3rem;
+    gap: 1rem;
+}
+
+.seusStatus img{
+    width: 6rem;
+    height: 6rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.btnADDStatus{
+    margin-top: 1rem;
+}
+
+.btnADDStatus svg{
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.principalMenu {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.containerMenu{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }

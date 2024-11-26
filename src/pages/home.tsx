@@ -7,10 +7,14 @@ import React, { useState, useCallback, FormEvent, useEffect } from 'react';
 
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
+import { BsPlusCircleDotted } from "react-icons/bs";
+import { IoClose } from "react-icons/io5";
 
 // imgs
 //@ts-expect-error ignorar img 
 import iconeChat from '../assets/img/chat2.svg';
+//@ts-expect-error ignorar img 
+import iconePadrao from '../assets/img/iconePadrao.svg';
 
 import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
@@ -27,6 +31,8 @@ const Home: React.FC = () => {
   const [idUser, setidUser] = useState<number | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(false);
+  const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
+
 
   useEffect(() => {
     const requestOptions: RequestInit = {
@@ -118,26 +124,64 @@ const Home: React.FC = () => {
       )}
       <section className='conteinerHome'>
         <div className="menu">
-          <UserInfo userInfo={userInfo} />
-          <div className='search'>
-            <div className='filter'>
-              <span>
-                <IoSearchOutline />
-              </span>
-              <input
-                className="inputSearch"
-                type="text"
-                name="filterContatos"
-                placeholder="Pesquisar"
-                required
-              />
+          {menuState === 'abaStatus' && (
+            <div className='abaStatus'>
+              <div className='cabecalhoStatus'>
+                <h1>Status</h1>
+                <IoClose onClick={() => setMenuState('principalMenu')} />
+              </div>
+              <div className='seusStatus'>
+                <img id="iconeStatus" src={iconePadrao} alt="Ícone do Status" />
+                <h1>Meu status</h1>
+                <div className='btnADDStatus'>
+                  <BsPlusCircleDotted />
+                </div>
+              </div>
+              <div className='visualizarStatus'>
+                {/* Lista de status dos contatos */}
+              </div>
             </div>
-          </div>
+          )}
 
-          <ContactList contacts={contacts} onSelectContact={handleSelectContact} />
-          <div className='footerMenu'>
-            <span onClick={handleBtnOpen}><IoIosAddCircle /></span>
-          </div>
+          {menuState === 'dadosConta' && (
+            <div className='dadosConta'>
+              <div className='cabecalhoConta'>
+                <h1>Dados da Conta</h1>
+                <IoClose onClick={() => setMenuState('principalMenu')} />
+              </div>
+              {/* Conteúdo dos dados da conta */}
+            </div>
+          )}
+
+          {menuState === 'principalMenu' && (
+            <div className='principalMenu'>
+              <div className='containerMenu'>
+                <UserInfo 
+                  userInfo={userInfo} 
+                  onStatusClick={() => setMenuState('abaStatus')} 
+                  onAccountClick={() => setMenuState('dadosConta')} 
+                />
+                <div className='search'>
+                  <div className='filter'>
+                    <span>
+                      <IoSearchOutline />
+                    </span>
+                    <input
+                      className="inputSearch"
+                      type="text"
+                      name="filterContatos"
+                      placeholder="Pesquisar"
+                      required
+                    />
+                  </div>
+                </div>
+                <ContactList contacts={contacts} onSelectContact={handleSelectContact} />
+              </div>
+              <div className='footerMenu'>
+                <span onClick={handleBtnOpen}><IoIosAddCircle /></span>
+              </div>
+            </div>
+          )}
         </div>
         <div className='bodyContainer'>
           {selectedContactId ? (
