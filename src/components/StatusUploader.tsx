@@ -26,21 +26,20 @@ const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, 
           {uploadedImage && (
             <div className="imagePreview">
               <img src={URL.createObjectURL(uploadedImage)} alt="Pré-visualização do Status" />
-              <div className='legenda'>
-                <input
-                  className="inputinfos"
-                  type="text"
-                  name="nome"
-                  placeholder="Digite uma legenda"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)} 
-                />
-              </div>
             </div>
           )}
-  
+          <div className='legenda'>
+            <input
+              className="inputinfos"
+              type="text"
+              name="nome"
+              placeholder="Digite uma legenda"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)} 
+            />
+          </div>
           <div className="btnPostar">
-            <button onClick={handleSave}>Salvar</button>
+            <button onClick={handleSave}>Postar</button>
           </div>
         </div>
       </div>

@@ -30,11 +30,11 @@ const upload = multer({ storage: storage });
 
 const storageStatus = multer.diskStorage({
   destination: function (_req, _file, cb) {
-    const uploadPath = 'uploads/status/';
+    const uploadPath = 'upload/status/';
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
-    cb(null, uploadPath);
+    cb(null, uploadPath); 
   },
   filename: function (_req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -264,7 +264,7 @@ router.post('/InfoContato', (req: Request, res: Response) => {
   });
 });
 
-router.get('/getStatus', (req: Request, res: Response) => {
+router.get('/getStatus', (res: Response) => {
   const sql = `
     SELECT id, idAltor, nomeAltor, imgStatus
     FROM status
@@ -294,9 +294,9 @@ router.get('/getStatus', (req: Request, res: Response) => {
   });
 });
 
-router.post('/salvarStatus', upload.single('imgStatus'), (req: Request, res: Response) => {
+router.post('/salvarStatus', uploadStatus.single('imgStatus'), (req: Request, res: Response) => {
   const { idAutor, legenda } = req.body;
-  const imgStatus = req.file ? `uploads/status/${req.file.filename}` : null;
+  const imgStatus = req.file ? `upload/status/${req.file.filename}` : null;
 
   if (!idAutor) {
     return res.status(400).send({ error: 'ID do autor não fornecido' });
@@ -324,13 +324,40 @@ router.post('/salvarStatus', upload.single('imgStatus'), (req: Request, res: Res
       VALUES (?, ?, ?, ?)
     `;
 
-    db.query(sqlInsertStatus, [idAutor, nomeAutor, imgStatus, legenda || null], (err, result) => {
+    db.query(sqlInsertStatus, [idAutor, nomeAutor, imgStatus, legenda || null], (err) => {
       if (err) {
         console.error('Erro ao salvar status:', err);
         return res.status(500).send({ error: 'Erro ao salvar status' });
       }
 
       res.send({ message: 'Status salvo com sucesso!' });
+    });
+  });
+});
+
+router.post('/statusUsuario', (req: Request, res: Response) => {
+  const { idUser } = req.body;
+
+  const sql = `
+    SELECT S.ImgStatus 
+    FROM status S
+    WHERE S.idAutor = ?
+    LIMIT 1;
+  `;
+
+  db.query(sql, [idUser], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar status do usuário: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar status do usuário' });
+    }
+
+    const statusImage = results.length > 0 
+      ? `../../${results[0].ImgStatus}` 
+      : '../assets/img/iconePadrao.svg';
+
+    res.send({
+      message: 'ok',
+      statusImage,
     });
   });
 });

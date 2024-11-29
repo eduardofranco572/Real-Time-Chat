@@ -4,7 +4,6 @@ import '../assets/css/menu.css';
 import '../assets/css/container.css';
 
 import React, { useState, useCallback, useEffect} from 'react';
-import AvatarEditor from 'react-avatar-editor';
 
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
@@ -21,7 +20,6 @@ import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
 import Chat from '../components/Chat';
-import StatusList from '../components/StatusList';
 
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
@@ -36,9 +34,9 @@ const Home: React.FC = () => {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
-  const [isEditing, setIsEditing] = useState(false);
   const [isUploaderVisible, setUploaderVisible] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [statusImage, setStatusImage] = useState<string>('');
 
   useEffect(() => {
     const requestOptions: RequestInit = {
@@ -165,6 +163,36 @@ const Home: React.FC = () => {
     }
   };
 
+  const fetchUserStatus = useCallback(async () => {
+    if (!idUser) return;
+  
+    const dataJSON = JSON.stringify({ idUser });
+  
+    try {
+      const response = await fetch('http://localhost:3000/statusUsuario', {
+        method: 'POST',
+        body: dataJSON,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const result = await response.json();
+  
+      if (result.message === 'ok') {
+        console.log('aqui + ' + result.statusImage) 
+        setStatusImage(result.statusImage || iconePadrao);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar status do usuário: ', error);
+    }
+  }, [idUser]);
+  
+  useEffect(() => {
+    fetchUserStatus();
+  }, [fetchUserStatus]);
+
+
   return (
     <>
       {isFormVisible && (
@@ -194,12 +222,9 @@ const Home: React.FC = () => {
                 <IoClose onClick={() => setMenuState('principalMenu')} />
               </div>
               <div className="seusStatus">
-                <img id="iconeStatus" src={iconePadrao} alt="Ícone do Status" />
+                <img id="iconeStatus" src={statusImage} alt="Ícone do Status" />
                 <h1>Meu status</h1>
-                <div
-                  className="btnADDStatus"
-                  onClick={handleAddStatusClick}
-                >
+                <div className="btnADDStatus" onClick={handleAddStatusClick}>
                   <BsPlusCircleDotted />
                 </div>
               </div>
@@ -216,6 +241,7 @@ const Home: React.FC = () => {
               />
             </div>
           )}
+
           {menuState === 'dadosConta' && (
             <div className='dadosConta'>
               <div className='cabecalhoConta'>
