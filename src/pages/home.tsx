@@ -3,7 +3,8 @@ import '../assets/css/home.css';
 import '../assets/css/menu.css';
 import '../assets/css/container.css';
 
-import React, { useState, useCallback, FormEvent, useEffect } from 'react';
+import React, { useState, useCallback, useEffect} from 'react';
+import AvatarEditor from 'react-avatar-editor';
 
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
@@ -20,9 +21,12 @@ import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
 import Chat from '../components/Chat';
+import StatusList from '../components/StatusList';
 
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
+import StatusUploader from '../components/StatusUploader';
+
 
 const Home: React.FC = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -32,7 +36,9 @@ const Home: React.FC = () => {
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUploaderVisible, setUploaderVisible] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
   useEffect(() => {
     const requestOptions: RequestInit = {
@@ -110,6 +116,55 @@ const Home: React.FC = () => {
     setIsFormVisible(false);
   };
 
+  //status
+  const handleAddStatusClick = () => {
+    const inputElement = document.getElementById('status-input') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.click();
+    } else {
+      console.error("Elemento de entrada de arquivo não encontrado!");
+    }
+  };
+
+  const handleImageUpload = (file: File) => {
+    setUploadedImage(file);
+    setUploaderVisible(true); 
+  };
+
+  const handleSaveStatus = async (file: File, caption: string) => {
+    if (!idUser) {
+      alert('Erro: Usuário não autenticado. Faça login para continuar.');
+      return;
+    }
+  
+    if (!file) {
+      alert('Nenhuma imagem selecionada!');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('imgStatus', file);
+    formData.append('legenda', caption);
+    formData.append('idAutor', idUser.toString());
+  
+    try {
+      const response = await fetch('http://localhost:3000/salvarStatus', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        alert('Status salvo com sucesso!');
+        setUploaderVisible(false);
+      } else {
+        alert('Erro ao salvar status: ' + (result.error || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      console.error('Erro ao salvar status:', error);
+    }
+  };
+
   return (
     <>
       {isFormVisible && (
@@ -122,27 +177,45 @@ const Home: React.FC = () => {
           setNome={setNome}
         />
       )}
+      {isUploaderVisible && (
+        <StatusUploader
+          onSaveStatus={handleSaveStatus} 
+          onClose={() => setUploaderVisible(false)}
+          uploadedImage={uploadedImage}
+        />
+      )}
+
       <section className='conteinerHome'>
         <div className="menu">
           {menuState === 'abaStatus' && (
-            <div className='abaStatus'>
-              <div className='cabecalhoStatus'>
+            <div className="abaStatus">
+              <div className="cabecalhoStatus">
                 <h1>Status</h1>
                 <IoClose onClick={() => setMenuState('principalMenu')} />
               </div>
-              <div className='seusStatus'>
+              <div className="seusStatus">
                 <img id="iconeStatus" src={iconePadrao} alt="Ícone do Status" />
                 <h1>Meu status</h1>
-                <div className='btnADDStatus'>
+                <div
+                  className="btnADDStatus"
+                  onClick={handleAddStatusClick}
+                >
                   <BsPlusCircleDotted />
                 </div>
               </div>
-              <div className='visualizarStatus'>
-                {/* Lista de status dos contatos */}
-              </div>
+              <input
+                id="status-input"
+                type="file"
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleImageUpload(e.target.files[0]); 
+                  }
+                }}
+              />
             </div>
           )}
-
           {menuState === 'dadosConta' && (
             <div className='dadosConta'>
               <div className='cabecalhoConta'>

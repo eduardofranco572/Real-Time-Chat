@@ -28,6 +28,21 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const storageStatus = multer.diskStorage({
+  destination: function (_req, _file, cb) {
+    const uploadPath = 'uploads/status/';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (_req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadStatus = multer({ storage: storageStatus });
+
 router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
   const imgPath = req.file ? req.file.filename : null;
@@ -249,6 +264,76 @@ router.post('/InfoContato', (req: Request, res: Response) => {
   });
 });
 
+router.get('/getStatus', (req: Request, res: Response) => {
+  const sql = `
+    SELECT id, idAltor, nomeAltor, imgStatus
+    FROM status
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar status: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar status' });
+    }
+
+    if (results.length > 0) {
+      const statuses = results.map((status: any) => ({
+        id: status.id,
+        idAltor: status.idAltor,
+        nomeAltor: status.nomeAltor,
+        imgStatus: status.imgStatus ? `../../upload/${status.imgStatus}` : '',
+      }));
+
+      res.send({
+        message: 'ok',
+        statuses,
+      });
+    } else {
+      res.send({ message: 'Nenhum status encontrado' });
+    }
+  });
+});
+
+router.post('/salvarStatus', upload.single('imgStatus'), (req: Request, res: Response) => {
+  const { idAutor, legenda } = req.body;
+  const imgStatus = req.file ? `uploads/status/${req.file.filename}` : null;
+
+  if (!idAutor) {
+    return res.status(400).send({ error: 'ID do autor não fornecido' });
+  }
+
+  if (!imgStatus) {
+    return res.status(400).send({ error: 'Imagem não fornecida' });
+  }
+
+  const sqlGetNomeAutor = `SELECT nome FROM usuario WHERE id = ?`;
+  db.query(sqlGetNomeAutor, [idAutor], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar nome do autor:', err);
+      return res.status(500).send({ error: 'Erro ao buscar nome do autor' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'Autor não encontrado' });
+    }
+
+    const nomeAutor = results[0].nome;
+
+    const sqlInsertStatus = `
+      INSERT INTO status (idAutor, nomeAutor, imgStatus, legenda)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(sqlInsertStatus, [idAutor, nomeAutor, imgStatus, legenda || null], (err, result) => {
+      if (err) {
+        console.error('Erro ao salvar status:', err);
+        return res.status(500).send({ error: 'Erro ao salvar status' });
+      }
+
+      res.send({ message: 'Status salvo com sucesso!' });
+    });
+  });
+});
 
 
 export default router;

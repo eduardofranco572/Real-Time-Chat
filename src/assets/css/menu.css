@@ -332,3 +332,115 @@
     flex-direction: column;
     justify-content: space-between;
 }
+
+.barraStatus{
+
+}
+
+
+.statusList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+  
+.statusItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+  
+.statusImage {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+  
+.statusInfo h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+  
+
+.statusUploaderOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+  
+.statusUploader {
+    width: 45rem;
+    height: 38rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(0 0 0 / 50%);
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    border-radius: 1rem;
+    z-index: 1;
+    backdrop-filter: blur(5px);
+}
+ 
+.BtnCloseSU{
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.BtnCloseSU button{
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    user-select: none;
+}
+
+.BtnCloseSU button svg{
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.btnPostar button{
+    margin-top: 2rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    width: 11rem;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.btnPostar button:hover{
+    transition: 0.2s;
+    transform: scale(1.1);
+}
+
+.statusUploader input{
+    width: 90%;
+}
+
+.imagePreview{
+    width: 90%;
+    height: 70%;
+}
+
+.imagePreview img{
+    height: 100%;
+    max-width: 40rem;
+}
