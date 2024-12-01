@@ -20,6 +20,7 @@ import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
 import Chat from '../components/Chat';
+import StatusList from '../components/StatusList'
 
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
@@ -227,6 +228,10 @@ const Home: React.FC = () => {
                 <div className="btnADDStatus" onClick={handleAddStatusClick}>
                   <BsPlusCircleDotted />
                 </div>
+              </div>
+              <div className='barraStatus'></div>
+              <div className='contatoStatus'>
+                <StatusList />
               </div>
               <input
                 id="status-input"

@@ -264,31 +264,51 @@ router.post('/InfoContato', (req: Request, res: Response) => {
   });
 });
 
-router.get('/getStatus', (res: Response) => {
+router.get('/getStatus/:idUser', (req, res) => {
+  const { idUser } = req.params;
+
+  if (!idUser) {
+    return res.status(400).send({ error: 'ID do usuário não fornecido.' });
+  }
+
   const sql = `
-    SELECT id, idAltor, nomeAltor, imgStatus
-    FROM status
+    SELECT 
+      status.id,
+      status.idAutor AS idUser,
+      contatos.nomeContato AS nomeContato,
+      status.imgStatus,
+      status.legenda
+    FROM 
+      contatos
+    INNER JOIN 
+      status 
+    ON 
+      contatos.idContato = status.idAutor
+    WHERE 
+      contatos.idUser = ?;
   `;
 
-  db.query(sql, (err, results) => {
+  db.query(sql, [idUser], (err, results) => {
     if (err) {
-      console.error('Erro ao buscar status: ', err);
+      console.error('Erro ao buscar status:', err);
       return res.status(500).send({ error: 'Erro ao buscar status' });
     }
 
     if (results.length > 0) {
       const statuses = results.map((status: any) => ({
         id: status.id,
-        idAltor: status.idAltor,
-        nomeAltor: status.nomeAltor,
-        imgStatus: status.imgStatus ? `../../upload/${status.imgStatus}` : '',
+        idAltor: status.idUser, 
+        nomeContato: status.nomeContato,
+        imgStatus: `../../${status.imgStatus}`,
+        legenda: status.legenda,
       }));
-
+      
       res.send({
         message: 'ok',
         statuses,
       });
     } else {
+      console.log('Nenhum status encontrado.');
       res.send({ message: 'Nenhum status encontrado' });
     }
   });

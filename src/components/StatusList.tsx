@@ -13,11 +13,11 @@ const StatusList: React.FC = () => {
         <div className="statusItem" key={status.id}>
           <img
             src={status.imgStatus || iconePadrao}
-            alt={`Status de ${status.nomeAltor}`}
+            alt={`Status de ${status.nomeContato}`}
             className="statusImage"
           />
           <div className="statusInfo">
-            <h2>{status.nomeAltor}</h2>
+            <h2>{status.nomeContato}</h2>
           </div>
         </div>
       ))}
