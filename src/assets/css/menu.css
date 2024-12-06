@@ -352,6 +352,7 @@
     border: 1px solid #ffffff36;
     border-left: none;
     border-right: none;
+    border-bottom: none;
 }
 
 .statusItem:hover{
@@ -374,7 +375,6 @@
     font-weight: bold;
 }
   
-
 .statusUploaderOverlay {
     position: absolute;
     top: 0;
@@ -465,6 +465,221 @@
     opacity: 0.2;
 }
 
-.contatoStatus{
+.statusOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+  
+.statusDetails {
+    width: 35rem;
+    height: 90%;
+    padding: 20px;
+    border-radius: 10px;;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    background-color: rgb(0 0 0 / 50%);
+    text-align: center;
+    border-radius: 1rem;
+    z-index: 1;
+    backdrop-filter: blur(5px);
+}
+  
+.statusImages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+  
+.statusDetailItem {
+    text-align: center;
+}
+  
+.statusDetailItem img {
+    max-width: 100%;
+    max-height: 37rem;
+}
 
+.statusCarousel {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    height: 90%;
+}
+  
+.carouselContent {
+    position: relative;
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    margin-top: 0rem;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center
+}
+
+.statusDetailItem {
+    position: relative;
+    grid-area: 1 / 1;
+    width: 100%;
+    height: 100%;
+    margin-top: 0rem;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+  
+.carouselNav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 10;
+}
+  
+.carouselNav.hidden {
+    display: none;
+}
+  
+.botoes-story{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.carouselNav.prev {
+    left: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    opacity: 0;
+    height: 36rem;
+    width: 13rem;
+}
+  
+.carouselNav.next {
+    right: 0;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    opacity: 0;
+    height: 36rem;
+    width: 13rem;
+}
+
+.menuStatus{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.slide-nav {
+    grid-area: 1 / 1;
+    z-index: 1;
+    grid-template-columns: 1fr 1fr;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.statusDetailItem {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+  
+.statusDetailItem.active {
+    display: flex;
+    opacity: 1;
+}
+  
+.statusDetailItem.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.statusLegenda {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 1rem;
+}
+
+.menuStatus button{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.menuStatus button:hover{
+    transform: scale(1.1);
+    transition: 0.2s;
+}
+
+.menuStatus button svg{
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.menuStatus h2{
+    font-size: 20px;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.slide-thumb {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    bottom: 10px;
+    width: 100%;
+}
+
+.thumb-bar {
+    flex: 1;
+    height: 3px;
+    background: rgb(61 61 61 / 93%);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+  
+.thumb-bar .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: #fff; 
+    transition: width 0.1s linear;
+}
+
+.userAltor{
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.userAltor img{
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
 }

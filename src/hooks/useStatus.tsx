@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface Status {
   id: number;
+  idContato: number;
   idAltor: number;
   nomeContato: string;
   imgStatus: string;
@@ -53,6 +54,7 @@ const useStatus = () => {
 
       if (result.message === 'ok') {
         setStatuses(result.statuses || []);
+        console.log('Resposta do servidor:', result.statuses);
       } else {
         console.error('Erro ao buscar status:', result.error || 'Erro desconhecido');
       }

@@ -7,7 +7,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 
 const router = express.Router();
-const SECRET_KEY = 'your_secret_key';
+const SECRET_KEY = '2323e12a';
 
 router.use(cookieParser());
 
@@ -275,6 +275,7 @@ router.get('/getStatus/:idUser', (req, res) => {
     SELECT 
       status.id,
       status.idAutor AS idUser,
+      contatos.idContato AS idContato,
       contatos.nomeContato AS nomeContato,
       status.imgStatus,
       status.legenda
@@ -285,7 +286,9 @@ router.get('/getStatus/:idUser', (req, res) => {
     ON 
       contatos.idContato = status.idAutor
     WHERE 
-      contatos.idUser = ?;
+      contatos.idUser = ?
+    GROUP BY 
+      status.idAutor;
   `;
 
   db.query(sql, [idUser], (err, results) => {
@@ -297,7 +300,8 @@ router.get('/getStatus/:idUser', (req, res) => {
     if (results.length > 0) {
       const statuses = results.map((status: any) => ({
         id: status.id,
-        idAltor: status.idUser, 
+        idAutor: status.idUser,
+        idContato: status.idContato,
         nomeContato: status.nomeContato,
         imgStatus: `../../${status.imgStatus}`,
         legenda: status.legenda,
@@ -311,6 +315,51 @@ router.get('/getStatus/:idUser', (req, res) => {
       console.log('Nenhum status encontrado.');
       res.send({ message: 'Nenhum status encontrado' });
     }
+  });
+});
+
+router.get('/getUserStatuses/:idContato', (req, res) => {
+  const { idContato } = req.params;
+
+  if (!idContato) {
+    return res.status(400).send({ error: 'ID do contato não fornecido.' });
+  }
+
+  const sql = `
+    SELECT 
+      status.id,
+      status.imgStatus,
+      status.legenda,
+      usuario.img AS imgContato
+    FROM 
+      status
+    INNER JOIN 
+      contatos
+    ON 
+      contatos.idContato = status.idAutor
+    LEFT JOIN 
+      usuario
+    ON 
+      usuario.id = contatos.idContato
+    WHERE 
+      status.idAutor = ?;
+  `;
+
+  db.query(sql, [idContato], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar status do contato:', err);
+      return res.status(500).send({ error: 'Erro ao buscar status do contato' });
+    }
+
+    res.send({
+      message: 'ok',
+      statuses: results.map((status: any) => ({
+        id: status.id,
+        imgStatus: `../../${status.imgStatus}`,
+        legenda: status.legenda,
+        imgContato: `../../upload/${status.imgContato}`,
+      })),
+    });
   });
 });
 
