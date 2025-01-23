@@ -301,14 +301,13 @@
     gap: 1rem;
 }
 
-.seusStatus img {
+.iconeStatusUser {
     width: 6rem;
     height: 6rem;
     cursor: pointer;
     user-select: none;
     border-radius: 50%;
     border: 3px solid white;
-
     object-fit: cover;
     object-position: center;
 }

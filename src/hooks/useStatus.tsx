@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import useUserId from './useUserId'; 
 
 interface Status {
   id: number;
@@ -11,34 +12,8 @@ interface Status {
 
 const useStatus = () => {
   const [statuses, setStatuses] = useState<Status[]>([]);
-  const [idUser, setIdUser] = useState<number | null>(null);
-
-  useEffect(() => {
-    const requestOptions: RequestInit = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    };
-
-    const fetchUserId = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/protected', requestOptions);
-        if (response.ok) {
-          const data = await response.json();
-          setIdUser(data.user);
-        } else {
-          console.error('Falha ao buscar o ID do usuário');
-        }
-      } catch (error) {
-        console.error('Erro ao buscar o ID do usuário:', error);
-      }
-    };
-
-    fetchUserId();
-  }, []);
-
+  const idUser = useUserId();
+  
   const fetchStatuses = useCallback(async () => {
     if (!idUser) return;
 

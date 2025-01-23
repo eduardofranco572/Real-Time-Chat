@@ -404,7 +404,7 @@ router.post('/salvarStatus', uploadStatus.single('imgStatus'), (req: Request, re
   });
 });
 
-router.post('/statusUsuario', (req: Request, res: Response) => {
+router.post('/statusUsuarioCapa', (req: Request, res: Response) => {
   const { idUser } = req.body;
 
   const sql = `
@@ -431,5 +431,42 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
   });
 });
 
+router.post('/statusUsuario', (req: Request, res: Response) => {
+  const { idUser } = req.body; 
+
+  const sql = `
+    SELECT 
+      S.id,
+      S.imgStatus,
+      S.legenda
+    FROM status S
+    WHERE S.idAutor = ?;
+  `;
+
+  db.query(sql, [idUser], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar status do usuário: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar status do usuário' });
+    }
+
+    if (results.length === 0) {
+      return res.send({
+        message: 'Nenhum status encontrado',
+        statuses: [],
+      });
+    }
+
+    const statuses = results.map((status: any) => ({
+      id: status.id,
+      imgStatus: `../../${status.imgStatus}`,
+      legenda: status.legenda,
+    }));
+
+    res.send({
+      message: 'ok',
+      statuses,
+    });
+  });
+});
 
 export default router;

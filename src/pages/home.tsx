@@ -21,17 +21,18 @@ import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
 import Chat from '../components/Chat';
 import StatusList from '../components/StatusList'
+import StatusUser from '../components/StatusUser'
 
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
 import StatusUploader from '../components/StatusUploader';
+import useUserId from '../hooks/useUserId'; 
 
 
 const Home: React.FC = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [idUser, setidUser] = useState<number | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
@@ -39,35 +40,11 @@ const Home: React.FC = () => {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [statusImage, setStatusImage] = useState<string>('');
 
-  useEffect(() => {
-    const requestOptions: RequestInit = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    };
 
-    const fetchUserId = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/protected', requestOptions);
-        if (response.ok) {
-          const data = await response.json();
-          setidUser(data.user);
-        } else {
-          console.log('Falha ao buscar o ID do usuário');
-        }
-      } catch (error) {
-        console.log('Erro ao buscar o ID do usuário:', error);
-      }
-    };
-
-    fetchUserId();
-  }, []);
-
+  const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
   const { contacts, fetchContacts } = useContacts(idUser);
-
+ 
   const handleBtnClose = useCallback(() => {
     setIsFormVisible(false);
   }, []);
@@ -116,6 +93,7 @@ const Home: React.FC = () => {
   };
 
   //status
+
   const handleAddStatusClick = () => {
     const inputElement = document.getElementById('status-input') as HTMLInputElement;
     if (inputElement) {
@@ -193,7 +171,6 @@ const Home: React.FC = () => {
     fetchUserStatus();
   }, [fetchUserStatus]);
 
-
   return (
     <>
       {isFormVisible && (
@@ -223,7 +200,7 @@ const Home: React.FC = () => {
                 <IoClose onClick={() => setMenuState('principalMenu')} />
               </div>
               <div className="seusStatus">
-                <img id="iconeStatus" src={statusImage} alt="Ícone do Status" />
+                <StatusUser />
                 <h1>Meu status</h1>
                 <div className="btnADDStatus" onClick={handleAddStatusClick}>
                   <BsPlusCircleDotted />
