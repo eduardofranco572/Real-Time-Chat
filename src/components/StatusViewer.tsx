@@ -60,67 +60,69 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
 
   return (
     <div className="statusOverlay">
-      <div className="statusDetails">
-        <div className="menuStatus">
-          <div className="userAltor">
-            <img
-              src={statuses[0]?.imgContato || iconePadrao}
-              alt="Imagem do Contato"
-            />
-            <h2>{selectedContactName}</h2>
+      <div className='paginaStatus'>
+        <div className="statusDetails">
+          <div className="menuStatus">
+            <div className="userAltor">
+              <img
+                src={statuses[0]?.imgContato || iconePadrao}
+                alt="Imagem do Contato"
+              />
+              <h2>{selectedContactName}</h2>
+            </div>
+            <button onClick={onClose}>
+              <IoClose />
+            </button>
           </div>
-          <button onClick={onClose}>
-            <IoClose />
-          </button>
-        </div>
-        <div className="statusCarousel" ref={carouselRef}>
-          <div className="carouselContent">
-            {statuses.map((status, index) => (
-              <div
-                key={status.id}
-                className={`statusDetailItem ${index === activeIndex ? 'active' : 'hidden'}`}
-              >
-                <img src={status.imgStatus || iconePadrao} alt="Status" />
-                <div className="statusLegenda">
-                  <p>{status.legenda}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <nav className="slide-nav">
-            <div className="slide-thumb">
-              {statuses.map((_, index) => (
-                <span
-                  key={index}
-                  className={`thumb-bar ${activeIndex === index ? 'active' : ''}`}
+          <div className="statusCarousel" ref={carouselRef}>
+            <div className="carouselContent">
+              {statuses.map((status, index) => (
+                <div
+                  key={status.id}
+                  className={`statusDetailItem ${index === activeIndex ? 'active' : 'hidden'}`}
                 >
-                  <div
-                    className="progress"
-                    style={{
-                      width: `${thumbProgress[index]}%`,
-                      background: activeIndex === index ? '#fff' : 'transparent',
-                    }}
-                  />
-                </span>
+                  <img src={status.imgStatus || iconePadrao} alt="Status" />
+                  <div className="statusLegenda">
+                    <p>{status.legenda}</p>
+                  </div>
+                </div>
               ))}
             </div>
-            <div className="botoes-story">
-              <button
-                className={`carouselNav prev ${activeIndex === 0 ? 'hidden' : ''}`}
-                onClick={handlePrev}
-              >
-                Anterior
-              </button>
-              <button
-                className={`carouselNav next ${
-                  activeIndex === statuses.length - 1 ? 'hidden' : ''
-                }`}
-                onClick={handleNext}
-              >
-                Próximo
-              </button>
-            </div>
-          </nav>
+            <nav className="slide-nav">
+              <div className="slide-thumb">
+                {statuses.map((_, index) => (
+                  <span
+                    key={index}
+                    className={`thumb-bar ${activeIndex === index ? 'active' : ''}`}
+                  >
+                    <div
+                      className="progress"
+                      style={{
+                        width: `${thumbProgress[index]}%`,
+                        background: activeIndex === index ? '#fff' : 'transparent',
+                      }}
+                    />
+                  </span>
+                ))}
+              </div>
+              <div className="botoes-story">
+                <button
+                  className={`carouselNav prev ${activeIndex === 0 ? 'hidden' : ''}`}
+                  onClick={handlePrev}
+                >
+                  Anterior
+                </button>
+                <button
+                  className={`carouselNav next ${
+                    activeIndex === statuses.length - 1 ? 'hidden' : ''
+                  }`}
+                  onClick={handleNext}
+                >
+                  Próximo
+                </button>
+              </div>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
