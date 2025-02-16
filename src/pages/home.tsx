@@ -19,6 +19,7 @@ import iconePadrao from '../assets/img/iconePadrao.svg';
 import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
+import DadosConta from '../components/DadosConta';
 import Chat from '../components/Chat';
 import StatusList from '../components/StatusList'
 import StatusUser from '../components/StatusUser'
@@ -223,17 +224,15 @@ const Home: React.FC = () => {
               />
             </div>
           )}
-
           {menuState === 'dadosConta' && (
             <div className='dadosConta'>
               <div className='cabecalhoConta'>
                 <h1>Dados da Conta</h1>
                 <IoClose onClick={() => setMenuState('principalMenu')} />
               </div>
-              {/* Conteúdo dos dados da conta */}
+              <DadosConta />
             </div>
           )}
-
           {menuState === 'principalMenu' && (
             <div className='principalMenu'>
               <div className='containerMenu'>

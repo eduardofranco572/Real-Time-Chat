@@ -438,9 +438,16 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
     SELECT 
       S.id,
       S.imgStatus,
-      S.legenda
-    FROM status S
-    WHERE S.idAutor = ?;
+      S.legenda,
+      U.img AS imgUser
+    FROM 
+      status S
+    INNER JOIN 
+      usuario U
+    ON 
+      U.id = S.idAutor
+    WHERE 
+      S.idAutor = ?;
   `;
 
   db.query(sql, [idUser], (err, results) => {
@@ -460,6 +467,7 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
       id: status.id,
       imgStatus: `../../${status.imgStatus}`,
       legenda: status.legenda,
+      imgContato: `../../upload/${status.imgUser}`,
     }));
 
     res.send({

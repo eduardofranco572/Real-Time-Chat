@@ -85,7 +85,7 @@ const StatusUser: React.FC = () => {
               />
             </div>
           ) : (
-            <p>Sem capa de status disponível.</p>
+            <p>Sem capa de status disponível.</p> //muda aqui para icone do usuario
           )}
 
           {isViewerOpen && (
