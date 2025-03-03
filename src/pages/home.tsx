@@ -3,32 +3,32 @@ import '../assets/css/home.css';
 import '../assets/css/menu.css';
 import '../assets/css/container.css';
 
-import React, { useState, useCallback, useEffect} from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 
 import { IoSearchOutline } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 import { BsPlusCircleDotted } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 
-// imgs
 //@ts-expect-error ignorar img 
 import iconeChat from '../assets/img/chat2.svg';
-//@ts-expect-error ignorar img 
-import iconePadrao from '../assets/img/iconePadrao.svg';
 
 import ContactForm from '../components/ContactForm';
 import ContactList from '../components/ContactList';
 import UserInfo from '../components/UserInfo';
-import DadosConta from '../components/DadosConta';
 import Chat from '../components/Chat';
-import StatusList from '../components/StatusList'
-import StatusUser from '../components/StatusUser'
+
+const DadosConta = lazy(() => import('../components/DadosConta'));
+const StatusList = lazy(() => import('../components/StatusList'));
+const StatusUser = lazy(() => import('../components/StatusUser'));
+const StatusUploader = lazy(() => import('../components/StatusUploader'));
 
 import useUserInfo from '../hooks/useUserInfo';
 import useContacts from '../hooks/useContacts';
-import StatusUploader from '../components/StatusUploader';
-import useUserId from '../hooks/useUserId'; 
-
+import useUserId from '../hooks/useUserId';
+import useUserStatus from '../hooks/homeHooks/useUserStatus';
+import useSaveStatus from '../hooks/homeHooks/useSaveStatus';
+import useAddContact from '../hooks/homeHooks/useAddContact';
 
 const Home: React.FC = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -39,13 +39,15 @@ const Home: React.FC = () => {
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
   const [isUploaderVisible, setUploaderVisible] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [statusImage, setStatusImage] = useState<string>('');
-
 
   const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
   const { contacts, fetchContacts } = useContacts(idUser);
- 
+
+  const statusImage = useUserStatus(idUser, menuState === 'abaStatus');
+  const { saveStatus } = useSaveStatus(idUser);
+  const addContact = useAddContact(idUser, fetchContacts);
+
   const handleBtnClose = useCallback(() => {
     setIsFormVisible(false);
   }, []);
@@ -56,44 +58,16 @@ const Home: React.FC = () => {
 
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    await addContact(email, nome);
+    setEmail('');
+    setNome('');
+  }, [email, nome, addContact]);
 
-    const dataJSON = JSON.stringify({
-      email,
-      nome,
-      idUser
-    });
-
-    try {
-      const response = await fetch('http://localhost:3000/addcontato', {
-        method: 'POST',
-        body: dataJSON,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.message === 'ok') {
-        setEmail('');
-        setNome('');
-        fetchContacts();
-      } else {
-        alert('Erro');
-      }
-    } catch (error) {
-      console.error('Erro ao enviar formulário: ', error);
-    }
-  }, [email, nome, idUser, fetchContacts]);
-
-  // Pegar informações do chat atual
   const handleSelectContact = (id: number) => {
     setSelectedContactId(id);
     setShowContactDetails(false);
     setIsFormVisible(false);
   };
-
-  //status
 
   const handleAddStatusClick = () => {
     const inputElement = document.getElementById('status-input') as HTMLInputElement;
@@ -110,67 +84,9 @@ const Home: React.FC = () => {
   };
 
   const handleSaveStatus = async (file: File, caption: string) => {
-    if (!idUser) {
-      alert('Erro: Usuário não autenticado. Faça login para continuar.');
-      return;
-    }
-  
-    if (!file) {
-      alert('Nenhuma imagem selecionada!');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('imgStatus', file);
-    formData.append('legenda', caption);
-    formData.append('idAutor', idUser.toString());
-  
-    try {
-      const response = await fetch('http://localhost:3000/salvarStatus', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      const result = await response.json();
-      if (response.ok) {
-        alert('Status salvo com sucesso!');
-        setUploaderVisible(false);
-      } else {
-        alert('Erro ao salvar status: ' + (result.error || 'Erro desconhecido'));
-      }
-    } catch (error) {
-      console.error('Erro ao salvar status:', error);
-    }
+    await saveStatus(file, caption);
+    setUploaderVisible(false);
   };
-
-  const fetchUserStatus = useCallback(async () => {
-    if (!idUser) return;
-  
-    const dataJSON = JSON.stringify({ idUser });
-  
-    try {
-      const response = await fetch('http://localhost:3000/statusUsuario', {
-        method: 'POST',
-        body: dataJSON,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-  
-      const result = await response.json();
-  
-      if (result.message === 'ok') {
-        console.log('aqui + ' + result.statusImage) 
-        setStatusImage(result.statusImage || iconePadrao);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar status do usuário: ', error);
-    }
-  }, [idUser]);
-  
-  useEffect(() => {
-    fetchUserStatus();
-  }, [fetchUserStatus]);
 
   return (
     <>
@@ -185,53 +101,59 @@ const Home: React.FC = () => {
         />
       )}
       {isUploaderVisible && (
-        <StatusUploader
-          onSaveStatus={handleSaveStatus} 
-          onClose={() => setUploaderVisible(false)}
-          uploadedImage={uploadedImage}
-        />
+        <Suspense fallback={<div>Carregando uploader...</div>}>
+          <StatusUploader
+            onSaveStatus={handleSaveStatus} 
+            onClose={() => setUploaderVisible(false)}
+            uploadedImage={uploadedImage}
+          />
+        </Suspense>
       )}
 
       <section className='conteinerHome'>
         <div className="menu">
           {menuState === 'abaStatus' && (
-            <div className="abaStatus">
-              <div className="cabecalhoStatus">
-                <h1>Status</h1>
-                <IoClose onClick={() => setMenuState('principalMenu')} />
-              </div>
-              <div className="seusStatus">
-                <StatusUser />
-                <h1>Meu status</h1>
-                <div className="btnADDStatus" onClick={handleAddStatusClick}>
-                  <BsPlusCircleDotted />
+            <Suspense fallback={<div>Carregando status...</div>}>
+              <div className="abaStatus">
+                <div className="cabecalhoStatus">
+                  <h1>Status</h1>
+                  <IoClose onClick={() => setMenuState('principalMenu')} />
                 </div>
+                <div className="seusStatus">
+                  <StatusUser />
+                  <h1>Meu status</h1>
+                  <div className="btnADDStatus" onClick={handleAddStatusClick}>
+                    <BsPlusCircleDotted />
+                  </div>
+                </div>
+                <div className='barraStatus'></div>
+                <div className='contatoStatus'>
+                  <StatusList />
+                </div>
+                <input
+                  id="status-input"
+                  type="file"
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleImageUpload(e.target.files[0]); 
+                    }
+                  }}
+                />
               </div>
-              <div className='barraStatus'></div>
-              <div className='contatoStatus'>
-                <StatusList />
-              </div>
-              <input
-                id="status-input"
-                type="file"
-                style={{ display: 'none' }}
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    handleImageUpload(e.target.files[0]); 
-                  }
-                }}
-              />
-            </div>
+            </Suspense>
           )}
           {menuState === 'dadosConta' && (
-            <div className='dadosConta'>
-              <div className='cabecalhoConta'>
-                <h1>Dados da Conta</h1>
-                <IoClose onClick={() => setMenuState('principalMenu')} />
+            <Suspense fallback={<div>Carregando dados da conta...</div>}>
+              <div className='dadosConta'>
+                <div className='cabecalhoConta'>
+                  <h1>Dados da Conta</h1>
+                  <IoClose onClick={() => setMenuState('principalMenu')} />
+                </div>
+                <DadosConta />
               </div>
-              <DadosConta />
-            </div>
+            </Suspense>
           )}
           {menuState === 'principalMenu' && (
             <div className='principalMenu'>
@@ -271,7 +193,6 @@ const Home: React.FC = () => {
               setShowContactDetails={setShowContactDetails}
               idUser={idUser} 
             />
-          
           ) : (
             <div className='noContatos'>
               <img src={iconeChat} alt="" />
@@ -282,6 +203,6 @@ const Home: React.FC = () => {
       </section>
     </>
   );
-}
+};
 
 export default Home;

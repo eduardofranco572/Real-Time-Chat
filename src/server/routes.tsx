@@ -477,4 +477,28 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
   });
 });
 
+
+router.post('/UpdateUser', upload.single('img'), (req: Request, res: Response) => {
+  const { idUser, nome, descricao } = req.body;
+  
+  let sql: string;
+  let params: any[];
+  
+  if (req.file) {
+    sql = "UPDATE usuario SET nome = ?, descricao = ?, img = ? WHERE ID = ?";
+    params = [nome, descricao, req.file.filename, idUser];
+  } else {
+    sql = "UPDATE usuario SET nome = ?, descricao = ? WHERE ID = ?";
+    params = [nome, descricao, idUser];
+  }
+
+  db.query(sql, params, (err, results) => {
+    if (err) {
+      console.error('Erro ao atualizar dados do usuário: ', err);
+      return res.status(500).send({ error: 'Erro ao atualizar dados do usuário' });
+    }
+    res.send({ message: 'Dados atualizados com sucesso' });
+  });
+});
+
 export default router;

@@ -704,7 +704,6 @@
 }
 
 .InformacoesUsuario{
-    height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -728,14 +727,79 @@
     opacity: 0.3;
 }
 
-.dadosInfor1{
+.infoPessoal{
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
     width: 100%;
 }
 
-.edit{
+.input{
     display: flex;
-    margin-top: 1rem;
     align-items: center;
-    width: 100%;
     justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.input input {
+    border: none;
+    background-color: transparent;
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
+}
+  
+.input input.editing {
+    border-bottom: 2px solid var(--color-subtitle);
+    border-top: transparent;
+    border-left: transparent;
+    border-right: transparent;
+}
+  
+.input svg{
+    cursor: pointer;
+    user-select: none;
+}
+
+.dadosInfor1{
+    margin: 1rem 1rem 0 1rem;
+}
+
+.dadosInfor1 p{
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-subtitle);
+    user-select: none;
+}
+
+.btnSalvarAlteracoes{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+.btnSalvarAlteracoes button{
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 14px;
+    width: 8rem;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.btnSalvarAlteracoes button:hover{
+    transition: 0.2s;
+    transform: scale(1.1);
+}
+
+.cardEditImage{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    position: fixed;
 }

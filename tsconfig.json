@@ -25,6 +25,6 @@
     "allowSyntheticDefaultImports": true
 
   },
-  "include": ["./src/**/*.tsx"],
+  "include": ["./src/**/*.tsx", "src/server/routes.tsx", "src/server/server.ts", "src/server/db.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
