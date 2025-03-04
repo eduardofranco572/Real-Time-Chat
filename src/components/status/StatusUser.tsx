@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import useUserId from '../hooks/useUserId';
-import StatusViewer from '../components/StatusViewer';
+import useUserId from '../../hooks/useUserId';
+import StatusViewer from './StatusViewer';
 
 const StatusUser: React.FC = () => {
   const idUser = useUserId();

@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import useStatus from '../hooks/useStatus';
+import useStatus from '../../hooks/useStatus';
 import StatusViewer from './StatusViewer';
 //@ts-expect-error ignorar img 
-import iconePadrao from '../assets/img/iconePadrao.svg';
+import iconePadrao from '../../assets/img/iconePadrao.svg';
 
 const StatusList: React.FC = () => {
   const { statuses } = useStatus();
