@@ -32,7 +32,7 @@ function LoginForm() {
         };
     
         try {
-            const response = await fetch('http://localhost:3000/login', requestOptions);
+            const response = await fetch('http://localhost:3000/api/auth/login', requestOptions);
     
             if (response.ok) {
                 const Toast = Swal.mixin({

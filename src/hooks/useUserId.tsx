@@ -14,7 +14,7 @@ const useUserId = () => {
 
     const fetchUserId = async () => {
       try {
-        const response = await fetch('http://localhost:3000/protected', requestOptions);
+        const response = await fetch('http://localhost:3000/api/auth/protected', requestOptions);
         if (response.ok) {
           const data = await response.json();
           setIdUser(data.user);

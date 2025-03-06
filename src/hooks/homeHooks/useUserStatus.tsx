@@ -9,7 +9,7 @@ const useUserStatus = (idUser: number | null, active: boolean) => {
         if (!idUser) return;
             const dataJSON = JSON.stringify({ idUser });
         try {
-            const response = await fetch('http://localhost:3000/statusUsuario', {
+            const response = await fetch('http://localhost:3000/api/status/statusUsuario', {
             method: 'POST',
             body: dataJSON,
             headers: { 'Content-Type': 'application/json' },

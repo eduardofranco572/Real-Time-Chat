@@ -29,7 +29,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
 
     const fetchContactInfo = async () => {
       try {
-        const response = await fetch('http://localhost:3000/InfoContato', {
+        const response = await fetch('http://localhost:3000/api/contacts/InfoContato', {
           method: 'POST',
           body: JSON.stringify({ idUser, idContato: selectedContactId }),
           headers: {

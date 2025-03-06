@@ -18,7 +18,7 @@ const useStatus = () => {
     if (!idUser) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/getStatus/${idUser}`, {
+      const response = await fetch(`http://localhost:3000/api/status/getStatus/${idUser}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

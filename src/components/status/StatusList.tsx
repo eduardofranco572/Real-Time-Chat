@@ -11,7 +11,7 @@ const StatusList: React.FC = () => {
 
   const handleStatusClick = useCallback(async (idContato: number, nomeContato: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/getUserStatuses/${idContato}`);
+      const response = await fetch(`http://localhost:3000/api/status/getUserStatuses/${idContato}`);
       const result = await response.json();
 
       if (response.ok) {

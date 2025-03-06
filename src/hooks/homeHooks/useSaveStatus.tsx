@@ -20,7 +20,7 @@ const useSaveStatus = (idUser: number | null) => {
 
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:3000/salvarStatus', {
+            const response = await fetch('http://localhost:3000/api/status/salvarStatus', {
             method: 'POST',
             body: formData,
             });

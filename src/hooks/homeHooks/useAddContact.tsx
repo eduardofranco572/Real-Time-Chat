@@ -14,7 +14,7 @@ const useAddContact = (idUser: number | null, fetchContacts: () => void) => {
         });
 
         try {
-            const response = await fetch('http://localhost:3000/addcontato', {
+            const response = await fetch('http://localhost:3000/api/contacts/addcontato', {
             method: 'POST',
             body: dataJSON,
             headers: { 'Content-Type': 'application/json' },

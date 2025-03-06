@@ -19,7 +19,7 @@ const PublicRoute = (props: PublicRouteProps) => {
 
         const verificaAuth = async () => {
             try {
-                const response = await fetch('http://localhost:3000/protected', requestOptions);
+                const response = await fetch('http://localhost:3000/api/auth/protected', requestOptions);
                 if (response.ok) {
                     setIsAuthenticated(true);
                 } else {

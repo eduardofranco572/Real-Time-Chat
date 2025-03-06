@@ -17,7 +17,7 @@ const useUserData = (idUser: string) => {
 
   const fetchUserData = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3000/InfoUser', {
+      const response = await fetch('http://localhost:3000/api/contacts/InfoUser', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idUser }),
@@ -60,7 +60,7 @@ const useUserData = (idUser: string) => {
           formData.append('img', imageFile);
         }
 
-        const response = await fetch('http://localhost:3000/UpdateUser', {
+        const response = await fetch('http://localhost:3000/api/contacts/UpdateUser', {
           method: 'POST',
           body: formData,
         });

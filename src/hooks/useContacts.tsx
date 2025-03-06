@@ -15,7 +15,7 @@ const useContacts = (idUser: number | string | null) => {
     const dataJSON = JSON.stringify({ idUser });
 
     try {
-      const response = await fetch('http://localhost:3000/PegaContatos', {
+      const response = await fetch('http://localhost:3000/api/contacts/PegaContatos', {
         method: 'POST',
         body: dataJSON,
         headers: {

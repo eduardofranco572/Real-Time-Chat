@@ -115,7 +115,7 @@ function CadastroForm() {
       }
     
       try {
-        const response = await fetch('http://localhost:3000/cadastrar', {
+        const response = await fetch('http://localhost:3000/api/auth/cadastrar', {
           method: 'POST',
           body: formData,
         });

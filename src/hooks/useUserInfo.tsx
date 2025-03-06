@@ -20,7 +20,7 @@ const useUserInfo = (idUser: number | string | null) => {
       const dataJSON = JSON.stringify({ idUser });
 
       try {
-        const response = await fetch('http://localhost:3000/InfoUser', {
+        const response = await fetch('http://localhost:3000/api/contacts/InfoUser', {
           method: 'POST',
           body: dataJSON,
           headers: {

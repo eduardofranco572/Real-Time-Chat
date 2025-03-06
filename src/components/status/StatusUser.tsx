@@ -12,7 +12,7 @@ const StatusUser: React.FC = () => {
     if (idUser !== null) {
       const fetchCoverStatus = async () => {
         try {
-          const response = await fetch('http://localhost:3000/statusUsuarioCapa', {
+          const response = await fetch('http://localhost:3000/api/status/statusUsuarioCapa', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ const StatusUser: React.FC = () => {
 
   const handleViewStatuses = async () => {
     try {
-      const response = await fetch('http://localhost:3000/statusUsuario', {
+      const response = await fetch('http://localhost:3000/api/status/statusUsuario', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
