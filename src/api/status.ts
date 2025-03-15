@@ -3,6 +3,11 @@ import db from '../server/db';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const router = express.Router();
 
@@ -209,5 +214,47 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
     res.send({ message: 'ok', statuses });
   });
 });
+
+router.delete('/excluirStatus/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ error: 'ID do status não fornecido.' });
+  }
+
+  const sqlGetStatus = 'SELECT imgStatus FROM status WHERE id = ?';
+  db.query(sqlGetStatus, [id], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar status:', err);
+      return res.status(500).send({ error: 'Erro ao buscar status' });
+    }
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'Status não encontrado.' });
+    }
+
+    const imgStatusPath = results[0].imgStatus;
+    const sqlDeleteStatus = 'DELETE FROM status WHERE id = ?';
+    db.query(sqlDeleteStatus, [id], (err) => {
+      if (err) {
+        console.error('Erro ao excluir status:', err);
+        return res.status(500).send({ error: 'Erro ao excluir status' });
+      }
+
+      const fullPath = path.join(__dirname, '../../', imgStatusPath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlink(fullPath, (err) => {
+          if (err) {
+            console.error('Erro ao excluir arquivo:', err);
+            return res.status(500).send({ error: 'Erro ao excluir arquivo' });
+          }
+          res.send({ message: 'Status excluído com sucesso!' });
+        });
+      } else {
+        res.send({ message: 'Status excluído, mas o arquivo não foi encontrado para exclusão.' });
+      }
+      
+    });
+  });
+});
+
 
 export default router;

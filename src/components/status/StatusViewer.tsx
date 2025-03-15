@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { IoClose } from "react-icons/io5";
+import OptionMenuStatus from './OptionMenuStatus';
 
 //@ts-expect-error ignorar img 
 import iconePadrao from '../../assets/img/iconePadrao.svg';
@@ -8,15 +8,23 @@ interface StatusViewerProps {
   statuses: any[];
   selectedContactName: string | null;
   onClose: () => void;
+  canDelete?: boolean;
 }
-
-const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactName, onClose }) => {
+const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactName, onClose, canDelete }) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [thumbProgress, setThumbProgress] = useState<number[]>([]);
-  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const [localStatuses, setLocalStatuses] = useState(statuses);
+
+  useEffect(() => {
+    setLocalStatuses(statuses);
+  }, [statuses]);
+
+  useEffect(() => {
+    setThumbProgress(Array(localStatuses.length).fill(0));
+  }, [localStatuses]);
 
   const handleNext = () => {
-    if (activeIndex < statuses.length - 1) {
+    if (activeIndex < localStatuses.length - 1) {
       setThumbProgress((prev) => {
         const updatedProgress = [...prev];
         updatedProgress[activeIndex] = 0;
@@ -37,13 +45,38 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
     }
   };
 
+  const handleDelete = async () => {
+    const statusToDelete = localStatuses[activeIndex];
+    if (!statusToDelete) return;
+    try {
+      const response = await fetch(`http://localhost:3000/api/status/excluirStatus/${statusToDelete.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const updatedStatuses = localStatuses.filter((_, index) => index !== activeIndex);
+      setLocalStatuses(updatedStatuses);
+      if (updatedStatuses.length === 0) {
+        onClose();
+      } else {
+        setActiveIndex((prevIndex) =>
+          prevIndex >= updatedStatuses.length ? updatedStatuses.length - 1 : prevIndex
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao excluir status:', error);
+    }
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       setThumbProgress((prev) => {
         const updatedProgress = [...prev];
         if (updatedProgress[activeIndex] < 100) {
           updatedProgress[activeIndex] += 2;
-        } else if (activeIndex < statuses.length - 1) {
+        } else if (activeIndex < localStatuses.length - 1) {
           setActiveIndex((prevIndex) => prevIndex + 1);
         } else {
           onClose();
@@ -51,33 +84,27 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
         return updatedProgress;
       });
     }, 100);
-
     return () => clearInterval(interval);
-  }, [activeIndex, statuses]);
-
-  useEffect(() => {
-    setThumbProgress(Array(statuses.length).fill(0));
-  }, [statuses]);
+  }, [activeIndex, localStatuses, onClose]);
 
   return (
     <div className="statusOverlay">
-      <div className='paginaStatus'>
+      <div className="paginaStatus">
         <div className="statusDetails">
           <div className="menuStatus">
             <div className="userAltor">
-              <img
-                src={statuses[0]?.imgContato || iconePadrao}
-                alt="Imagem do Contato"
-              />
+              <img src={localStatuses[0]?.imgContato || iconePadrao} alt="Imagem do Contato" />
               <h2>{selectedContactName}</h2>
             </div>
-            <button onClick={onClose}>
-              <IoClose />
-            </button>
+            <OptionMenuStatus 
+              canDelete={canDelete}
+              handleDelete={handleDelete}
+              onClose={onClose}
+            />
           </div>
-          <div className="statusCarousel" ref={carouselRef}>
+          <div className="statusCarousel">
             <div className="carouselContent">
-              {statuses.map((status, index) => (
+              {localStatuses.map((status, index) => (
                 <div
                   key={status.id}
                   className={`statusDetailItem ${index === activeIndex ? 'active' : 'hidden'}`}
@@ -91,7 +118,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
             </div>
             <nav className="slide-nav">
               <div className="slide-thumb">
-                {statuses.map((_, index) => (
+                {localStatuses.map((_, index) => (
                   <span
                     key={index}
                     className={`thumb-bar ${activeIndex === index ? 'active' : ''}`}
@@ -114,9 +141,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
                   Anterior
                 </button>
                 <button
-                  className={`carouselNav next ${
-                    activeIndex === statuses.length - 1 ? 'hidden' : ''
-                  }`}
+                  className={`carouselNav next ${activeIndex === localStatuses.length - 1 ? 'hidden' : ''}`}
                   onClick={handleNext}
                 >
                   Próximo

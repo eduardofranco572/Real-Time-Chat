@@ -93,6 +93,7 @@ const StatusUser: React.FC = () => {
               statuses={statuses}
               selectedContactName="Seus Status"
               onClose={closeViewer}
+              canDelete={true}
             />
           )}
         </div>

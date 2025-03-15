@@ -640,7 +640,7 @@
     user-select: none;
 }
 
-.menuStatus button:hover{
+.btnCloseStatus:hover, .iconeOptions:hover{
     transform: scale(1.1);
     transition: 0.2s;
 }
@@ -648,12 +648,61 @@
 .menuStatus button svg{
     width: 1.5rem;
     height: 1.5rem;
+    display: flex;
+    justify-content: center;
 }
 
 .menuStatus h2{
     font-size: 16px;
     font-weight: 500;
     margin-left: 10px;
+}
+
+.optionMenuContainer {
+    position: relative;
+}
+
+.optionMenuStatus {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.iconeOptions{
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.menuCardOptions {
+    position: absolute;
+    width: 7rem;
+    top: 100%;
+    right: 0;
+    background-color: #292929;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+.btnDeleteStatus, .btnSilenciarStatus {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    padding: 8px
+}
+
+.btnDeleteStatus:hover,
+.btnSilenciarStatus:hover {
+    background-color: #181818;
+    border-radius: 5px;
+}
+
+.alingItensMenu{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px;
 }
 
 .slide-thumb {
