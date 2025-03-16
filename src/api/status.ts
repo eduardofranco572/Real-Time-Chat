@@ -11,20 +11,31 @@ const __dirname = dirname(__filename);
 
 const router = express.Router();
 
-// Configuração do multer
+// Configuração do multer para aceitar imagens e vídeos
 const storageStatus = multer.diskStorage({
   destination: function (_req, _file, cb) {
     const uploadPath = 'upload/status/';
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
-    cb(null, uploadPath); 
+    cb(null, uploadPath);
   },
   filename: function (_req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   }
 });
-const uploadStatus = multer({ storage: storageStatus });
+
+const uploadStatus = multer({ 
+  storage: storageStatus,
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas imagens e vídeos são permitidos!'));
+    }
+  }
+});
+
 
 router.get('/getStatus/:idUser', (req: Request, res: Response) => {
   const { idUser } = req.params;
@@ -119,15 +130,15 @@ router.get('/getUserStatuses/:idContato', (req: Request, res: Response) => {
   });
 });
 
-router.post('/salvarStatus', uploadStatus.single('imgStatus'), (req: Request, res: Response) => {
+router.post('/salvarStatus', uploadStatus.single('mediaStatus'), (req: Request, res: Response) => {
   const { idAutor, legenda } = req.body;
-  const imgStatus = req.file ? `upload/status/${req.file.filename}` : null;
+  const mediaStatus = req.file ? `upload/status/${req.file.filename}` : null;
 
   if (!idAutor) {
     return res.status(400).send({ error: 'ID do autor não fornecido' });
   }
-  if (!imgStatus) {
-    return res.status(400).send({ error: 'Imagem não fornecida' });
+  if (!mediaStatus) {
+    return res.status(400).send({ error: 'Arquivo não fornecido' });
   }
 
   const sqlGetNomeAutor = `SELECT nome FROM usuario WHERE id = ?`;
@@ -145,7 +156,7 @@ router.post('/salvarStatus', uploadStatus.single('imgStatus'), (req: Request, re
       INSERT INTO status (idAutor, nomeAutor, imgStatus, legenda)
       VALUES (?, ?, ?, ?)
     `;
-    db.query(sqlInsertStatus, [idAutor, nomeAutor, imgStatus, legenda || null], (err) => {
+    db.query(sqlInsertStatus, [idAutor, nomeAutor, mediaStatus, legenda || null], (err) => {
       if (err) {
         console.error('Erro ao salvar status:', err);
         return res.status(500).send({ error: 'Erro ao salvar status' });

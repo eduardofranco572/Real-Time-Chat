@@ -1,50 +1,57 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import { IoMdClose } from "react-icons/io";
 
 interface StatusUploaderProps {
-    onSaveStatus: (file: File, caption: string) => void; 
-    onClose: () => void;
-    uploadedImage: File | null;
+  onSaveStatus: (file: File, caption: string) => void;
+  onClose: () => void;
+  uploadedMedia: File | null;
 }
-  
-const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, uploadedImage }) => {
-    const [caption, setCaption] = useState<string>(''); 
-  
-    const handleSave = () => {
-      if (uploadedImage) {
-        onSaveStatus(uploadedImage, caption);
-      }
-    };
-  
-    return (
-      <div className="statusUploaderOverlay">
-        <div className="statusUploader">
-          <div className="BtnCloseSU">
-            <button onClick={onClose}><IoMdClose /></button>
-          </div>
-  
-          {uploadedImage && (
-            <div className="imagePreview">
-              <img src={URL.createObjectURL(uploadedImage)} alt="Pré-visualização do Status" />
-            </div>
-          )}
-          <div className='legenda'>
-            <input
-              className="inputinfos"
-              type="text"
-              name="nome"
-              placeholder="Digite uma legenda"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)} 
-            />
-          </div>
-          <div className="btnPostar">
-            <button onClick={handleSave}>Postar</button>
-          </div>
-        </div>
-      </div>
-    );
+
+const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, uploadedMedia }) => {
+  const [caption, setCaption] = useState<string>('');
+
+  const handleSave = () => {
+    alert('Botão Postar clicado!');
+    console.log('uploadedMedia:', uploadedMedia);
+    if (uploadedMedia) {
+      onSaveStatus(uploadedMedia, caption);
+    } else {
+      alert('Nenhum arquivo foi selecionado!');
+    }
   };
   
+  return (
+    <div className="statusUploaderOverlay">
+      <div className="statusUploader">
+        <div className="BtnCloseSU">
+          <button onClick={onClose}><IoMdClose /></button>
+        </div>
+
+        {uploadedMedia && (
+          <div className="mediaPreview">
+            {uploadedMedia.type.startsWith('video/') ? (
+              <video controls src={URL.createObjectURL(uploadedMedia)} />
+            ) : (
+              <img src={URL.createObjectURL(uploadedMedia)} alt="Pré-visualização do Status" />
+            )}
+          </div>
+        )}
+
+        <div className="legenda">
+          <input
+            className="inputinfos"
+            type="text"
+            placeholder="Digite uma legenda"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+          />
+        </div>
+        <div className="btnPostar">
+          <button onClick={handleSave}>Postar</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default StatusUploader;

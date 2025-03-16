@@ -3,6 +3,9 @@ import { IoSearchOutline, IoClose } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 import { BsPlusCircleDotted } from "react-icons/bs";
 
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
 import UserInfo from '../../components/UserInfo';
 import ContactList from '../../components/ContactList';
 import ContactForm from '../../components/ContactForm';
@@ -85,16 +88,16 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
         />
       )}
       {isUploaderVisible && (
-        <Suspense fallback={<div>Carregando uploader...</div>}>
-          <StatusUploader
+        <Suspense fallback={<Skeleton height={200} />}>
+         <StatusUploader
             onSaveStatus={handleSaveStatus} 
             onClose={() => setUploaderVisible(false)}
-            uploadedImage={uploadedImage}
+            uploadedMedia={uploadedImage}
           />
         </Suspense>
       )}
       {menuState === 'abaStatus' && (
-        <Suspense fallback={<div>Carregando status...</div>}>
+        <Suspense fallback={<Skeleton height={200} />}>
           <div className="abaStatus">
             <div className="cabecalhoStatus">
               <h1>Status</h1>
@@ -115,10 +118,16 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
               id="status-input"
               type="file"
               style={{ display: 'none' }}
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  handleImageUpload(e.target.files[0]); 
+                  const file = e.target.files[0];
+                  const maxSize = 10 * 1024 * 1024;
+                  if (file.size > maxSize) {
+                    alert('O arquivo excede o limite de 10MB. Por favor, selecione outro arquivo.');
+                    return;
+                  }
+                  handleImageUpload(file);
                 }
               }}
             />
@@ -126,7 +135,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
         </Suspense>
       )}
       {menuState === 'dadosConta' && (
-        <Suspense fallback={<div>Carregando dados da conta...</div>}>
+        <Suspense fallback={<Skeleton height={200} />}>
           <div className="dadosConta">
             <div className="cabecalhoConta">
               <h1>Dados da Conta</h1>

@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OptionMenuStatus from './OptionMenuStatus';
-
 //@ts-expect-error ignorar img 
 import iconePadrao from '../../assets/img/iconePadrao.svg';
 
@@ -10,10 +9,12 @@ interface StatusViewerProps {
   onClose: () => void;
   canDelete?: boolean;
 }
+
 const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactName, onClose, canDelete }) => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [thumbProgress, setThumbProgress] = useState<number[]>([]);
   const [localStatuses, setLocalStatuses] = useState(statuses);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     setLocalStatuses(statuses);
@@ -55,7 +56,6 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
       const updatedStatuses = localStatuses.filter((_, index) => index !== activeIndex);
       setLocalStatuses(updatedStatuses);
       if (updatedStatuses.length === 0) {
@@ -70,7 +70,11 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
     }
   };
 
+  // Para imagem
   useEffect(() => {
+    const currentMediaPath = localStatuses[activeIndex]?.imgStatus;
+    const isCurrentVideo = currentMediaPath && currentMediaPath.match(/\.(mp4|webm|ogg)$/i);
+    if (isCurrentVideo) return;
     const interval = setInterval(() => {
       setThumbProgress((prev) => {
         const updatedProgress = [...prev];
@@ -85,6 +89,52 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
       });
     }, 100);
     return () => clearInterval(interval);
+  }, [activeIndex, localStatuses, onClose]);
+
+  // Para vídeos
+  useEffect(() => {
+    const currentStatus = localStatuses[activeIndex];
+    if (!currentStatus) return;
+    const mediaPath = currentStatus.imgStatus;
+    const isVideo = mediaPath && mediaPath.match(/\.(mp4|webm|ogg)$/i);
+
+    if (isVideo) {
+      const videoElement = videoRef.current;
+      if (videoElement) {
+        videoElement.play().catch(err => console.error('Erro ao reproduzir vídeo:', err));
+
+        const onTimeUpdate = () => {
+          if (!videoElement || !videoElement.duration) return;
+          const progressPercent = (videoElement.currentTime / videoElement.duration) * 100;
+          setThumbProgress(prev => {
+            const updated = [...prev];
+            updated[activeIndex] = progressPercent;
+            return updated;
+          });
+        };
+
+        const onEnded = () => {
+          if (activeIndex < localStatuses.length - 1) {
+            setActiveIndex(activeIndex + 1);
+          } else {
+            onClose();
+          }
+        };
+
+        videoElement.addEventListener('timeupdate', onTimeUpdate);
+        videoElement.addEventListener('ended', onEnded);
+
+        return () => {
+          videoElement.pause();
+          videoElement.removeEventListener('timeupdate', onTimeUpdate);
+          videoElement.removeEventListener('ended', onEnded);
+        };
+      }
+    } else {
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+    }
   }, [activeIndex, localStatuses, onClose]);
 
   return (
@@ -104,17 +154,30 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
           </div>
           <div className="statusCarousel">
             <div className="carouselContent">
-              {localStatuses.map((status, index) => (
-                <div
-                  key={status.id}
-                  className={`statusDetailItem ${index === activeIndex ? 'active' : 'hidden'}`}
-                >
-                  <img src={status.imgStatus || iconePadrao} alt="Status" />
-                  <div className="statusLegenda">
-                    <p>{status.legenda}</p>
+              {localStatuses.map((status, index) => {
+                const mediaPath = status.imgStatus;
+                const isVideo = mediaPath.match(/\.(mp4|webm|ogg)$/i);
+                return (
+                  <div
+                    key={status.id}
+                    className={`statusDetailItem ${index === activeIndex ? 'active' : 'hidden'}`}
+                  >
+                    {isVideo ? (
+                      <video
+                        ref={index === activeIndex ? videoRef : null}
+                        playsInline
+                        src={mediaPath}
+                        // Removemos autoPlay para controlar manualmente
+                      />
+                    ) : (
+                      <img src={mediaPath} alt="Status" />
+                    )}
+                    <div className="statusLegenda">
+                      <p>{status.legenda}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <nav className="slide-nav">
               <div className="slide-thumb">
