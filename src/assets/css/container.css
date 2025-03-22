@@ -195,7 +195,7 @@
 
 .Chat{
     height: 100%;
-    width: 100%;
+    padding: 1rem 2rem 0 2rem;
 }
 
 .IconeContatoChat{
@@ -203,4 +203,24 @@
     align-items: center;
 }
 
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
+.message {
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+
+.my-message {
+    background-color: #3d3d3d; 
+    align-self: flex-end;
+}
+
+.contact-message {
+    background-color: #181818;;
+    align-self: flex-start;
+}

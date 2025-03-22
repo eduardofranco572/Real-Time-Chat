@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { IoMdMore } from "react-icons/io";
-import { IoMdClose } from "react-icons/io";
+import { IoMdMore, IoMdClose, IoMdSend } from "react-icons/io";
 import { MdAdd } from "react-icons/md";
 import { AiFillAudio } from "react-icons/ai";
-import { IoMdSend } from "react-icons/io";
+import MessageList from './MessageList'; 
 
 interface ChatProps {
   selectedContactId: number | null;
@@ -23,7 +22,8 @@ interface ContactInfo {
 
 const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails, idUser }) => {
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
-  
+  const [message, setMessage] = useState<string>('');
+
   useEffect(() => {
     if (!selectedContactId || !idUser) return;
 
@@ -51,11 +51,36 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
     };
 
     fetchContactInfo();
-  }, [selectedContactId]);
+  }, [selectedContactId, idUser]);
 
   const handleHideDetails = () => {
     setShowContactDetails(false);
   };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !idUser || !selectedContactId) return;
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/chat/salvarMensagem', {
+        method: 'POST',
+        body: JSON.stringify({
+          idUser,
+          idContato: selectedContactId,
+          message,
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      if (result.message === 'Mensagem enviada com sucesso') {
+        setMessage('');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };  
 
   if (!contactInfo) {
     return <div>Loading contact info...</div>;
@@ -78,27 +103,38 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             <IoMdMore />
           </div>  
         </section>
-        <section className='Chat'>
 
+        <section className='Chat'>
+          {idUser && selectedContactId && (
+            <MessageList currentUserId={idUser} contactId={selectedContactId} />
+          )}
         </section>
-        <section className='footerChat'>
-          <div className='infoFC'>
-            <div className='topico2'>
-              <MdAdd />
+
+        <section className="footerChat">
+          <div className="infoFC">
+            <div className="topico2">
+              <MdAdd/>
             </div>
             <input
               className="inputinfosFC"
               type="text"
               name="mensagem"
               placeholder="Digite uma mensagem"
-              //onChange={(e) => setNome(e.target.value)}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSendMessage();
+                }
+              }}
             />
-            <div className='topico2'>
-              <AiFillAudio />
-              <IoMdSend />
+            <div className="topico2">
+              <AiFillAudio/>
+              <IoMdSend onClick={handleSendMessage} />
             </div>
           </div>
         </section>
+
       </div>
       {showContactDetails && (
         <div className='DadosContato'>

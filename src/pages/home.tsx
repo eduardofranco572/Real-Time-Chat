@@ -2,9 +2,10 @@ import '../assets/css/global.css';
 import '../assets/css/home.css';
 import '../assets/css/menu.css';
 import '../assets/css/container.css';
+import '../assets/css/status.css';
 
 import React from 'react';
-import Chat from '../components/Chat';
+import Chat from '../components/chat/Chat';
 import MenuContainer from '../components/menu/MenuContainer';
 import useUserId from '../hooks/useUserId';
 
@@ -28,7 +29,7 @@ const Home: React.FC = () => {
       </div>
       <div className='bodyContainer'>
         {selectedContactId ? (
-          <Chat
+          <Chat 
             selectedContactId={selectedContactId}
             showContactDetails={showContactDetails}
             setShowContactDetails={setShowContactDetails}
