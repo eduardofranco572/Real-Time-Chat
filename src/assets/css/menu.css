@@ -555,6 +555,11 @@
     align-items: center
 }
 
+.carouselContent video{
+    height: 100%;
+    max-width: 100%;
+}
+
 .statusDetailItem {
     position: relative;
     grid-area: 1 / 1;

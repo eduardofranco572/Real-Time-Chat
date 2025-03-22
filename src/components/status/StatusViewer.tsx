@@ -14,6 +14,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [thumbProgress, setThumbProgress] = useState<number[]>([]);
   const [localStatuses, setLocalStatuses] = useState(statuses);
+  const [muted, setMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -70,7 +71,12 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
     }
   };
 
-  // Para imagem
+  // Função para alternar o estado de mudo
+  const toggleMute = () => {
+    setMuted((prevMuted) => !prevMuted);
+  };
+
+  // Para imagens
   useEffect(() => {
     const currentMediaPath = localStatuses[activeIndex]?.imgStatus;
     const isCurrentVideo = currentMediaPath && currentMediaPath.match(/\.(mp4|webm|ogg)$/i);
@@ -150,6 +156,8 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
               canDelete={canDelete}
               handleDelete={handleDelete}
               onClose={onClose}
+              toggleMute={toggleMute} 
+              isMuted={muted}         
             />
           </div>
           <div className="statusCarousel">
@@ -167,7 +175,7 @@ const StatusViewer: React.FC<StatusViewerProps> = ({ statuses, selectedContactNa
                         ref={index === activeIndex ? videoRef : null}
                         playsInline
                         src={mediaPath}
-                        // Removemos autoPlay para controlar manualmente
+                        muted={muted}
                       />
                     ) : (
                       <img src={mediaPath} alt="Status" />

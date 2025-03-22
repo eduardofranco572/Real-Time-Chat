@@ -6,9 +6,11 @@ interface OptionMenuStatusProps {
     canDelete?: boolean;
     handleDelete: () => void;
     onClose: () => void;
+    toggleMute: () => void;
+    isMuted: boolean;       
 }
   
-const OptionMenuStatus: React.FC<OptionMenuStatusProps> = ({ canDelete, handleDelete, onClose }) => {
+const OptionMenuStatus: React.FC<OptionMenuStatusProps> = ({ canDelete, handleDelete, onClose, toggleMute, isMuted }) => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
   const toggleOptions = () => {
@@ -26,16 +28,16 @@ const OptionMenuStatus: React.FC<OptionMenuStatusProps> = ({ canDelete, handleDe
 
       {isOptionsOpen && (
         <div className="menuCardOptions">
-            <div className='alingItensMenu'>
-                {canDelete && (
-                <button onClick={handleDelete} className="btnDeleteStatus">
-                    Excluir
-                </button>
-                )}
-                <button className="btnSilenciarStatus">
-                    Silenciar
-                </button>
-            </div>
+          <div className='alingItensMenu'>
+            {canDelete && (
+              <button onClick={handleDelete} className="btnDeleteStatus">
+                Excluir
+              </button>
+            )}
+            <button onClick={toggleMute} className="btnSilenciarStatus">
+              {isMuted ? 'Ativar Som' : 'Silenciar'}
+            </button>
+          </div>
         </div>
       )}
     </div>
