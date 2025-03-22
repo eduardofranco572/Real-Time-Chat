@@ -83,7 +83,7 @@ function LoginForm() {
   return (
     <>
       <section className='conteinerLogar'>
-        <form encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit} 
+        <form className="formLogin" encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit} 
         >
             <h1 className='titleForm'>Entrar</h1>
             <input

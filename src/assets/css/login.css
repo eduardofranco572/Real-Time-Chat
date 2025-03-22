@@ -18,7 +18,7 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
     width: 29rem;
 }
 
-form{
+.formLogin{
     display: flex;
     flex-direction: column;
     justify-content: center;

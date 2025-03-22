@@ -191,7 +191,7 @@ function CadastroForm() {
       )}   
 
       <section className='conteinerCadastrar'>
-        <form encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit}>
+        <form className="formLogin" encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit}>
           <h1 className='titleForm'>Cadastrar</h1>
           <div className="img4-div">
             <div className="contenerimg" id="img-container4" onClick={handleContainerClick}>

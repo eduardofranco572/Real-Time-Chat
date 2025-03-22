@@ -36,14 +36,6 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Página inicial');
 });
 
-io.on('connection', (socket) => {
-  console.log('Novo cliente conectado:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado:', socket.id);
-  });
-});
-
 server.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });

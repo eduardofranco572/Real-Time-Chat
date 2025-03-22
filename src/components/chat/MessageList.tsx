@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import MessageOption from './MessageOption';
+import EditMessagePopup from './EditMessagePopup';
+import Swal from 'sweetalert2';
 
 interface Message {
   id: number;
   idUser: number;
   idContato: number;
   mensagem: string;
-  createdAt?: string;
+  link: boolean;
+  createdAt: string;
 }
 
 interface MessageListProps {
@@ -18,8 +22,8 @@ const socket = io('http://localhost:3000');
 
 const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
 
-  // Função para buscar as mensagens existentes
   const fetchMessages = async () => {
     try {
       const response = await fetch('http://localhost:3000/api/chat/getMessages', {
@@ -31,6 +35,60 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId }) =
       setMessages(result.messages);
     } catch (error) {
       console.error("Erro ao buscar mensagens:", error);
+    }
+  };
+
+  const handleEditMessage = (messageId: number, currentText: string) => {
+    setEditingMessage({ id: messageId, text: currentText });
+  };
+
+  const handleCopyMessage = (messageText: string) => {
+    navigator.clipboard.writeText(messageText)
+      .then(() => {
+        console.log("Texto copiado com sucesso!");
+      })
+      .catch((err) => {
+        console.error("Erro ao copiar texto: ", err);
+      });
+  };
+  
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/chat/excluirMensagem', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: messageId }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        setMessages(prevMessages => prevMessages.filter(m => m.id !== messageId));
+      } else {
+        console.error("Erro ao excluir mensagem:", data.error);
+      }
+    } catch (error) {
+      console.error("Erro na requisição de exclusão:", error);
+    }
+  };
+
+  const handleSaveMessage = (newText: string) => {
+    if (editingMessage) {
+      fetch('http://localhost:3000/api/chat/editarMensagem', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingMessage.id, message: newText })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data.message);
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === editingMessage.id ? { ...msg, mensagem: newText } : msg
+          )
+        );
+        setEditingMessage(null);
+      })
+      .catch(error => console.error("Erro ao editar mensagem:", error));
     }
   };
 
@@ -62,10 +120,27 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId }) =
             key={message.id}
             className={`message ${isMyMessage ? 'my-message' : 'contact-message'}`}
           >
-            <span>{message.mensagem}</span>
+            <MessageOption
+              message={message.mensagem}
+              link={message.link}
+              createdAt={message.createdAt}
+              isMine={isMyMessage}
+              onCopy={() => handleCopyMessage(message.mensagem)}
+              onReply={() => console.log('Responder mensagem', message.id)}
+              onEdit={() => handleEditMessage(message.id, message.mensagem)}
+              onDelete={() => handleDeleteMessage(message.id)}
+            />
           </div>
         );
       })}
+
+      {editingMessage && (
+        <EditMessagePopup
+          initialMessage={editingMessage.text}
+          onSave={handleSaveMessage}
+          onClose={() => setEditingMessage(null)}
+        />
+      )}
     </div>
   );
 };
