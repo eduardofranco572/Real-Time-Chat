@@ -4,7 +4,7 @@ import db from '../server/db';
 const router = express.Router();
 
 router.post('/salvarMensagem', (req: Request, res: Response) => {
-  const { idUser, idContato, message } = req.body;
+  const { idUser, idContato, message, replyTo } = req.body;
   
   if (!idUser || !idContato || !message) {
     return res.status(400).send({ error: 'Dados incompletos' });
@@ -12,8 +12,13 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
   
   const linkFlag = isLink(message);
 
-  const sql = "INSERT INTO chat (idUser, idContato, mensagem, link) VALUES (?, ?, ?, ?)";
-  db.query(sql, [idUser, idContato, message, linkFlag], (err, result) => {
+  const sql = `
+    INSERT INTO chat (idUser, idContato, mensagem, link, replyTo)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  const replyValue = replyTo !== undefined ? replyTo : null;
+  
+  db.query(sql, [idUser, idContato, message, linkFlag, replyValue], (err, result) => {
     if (err) {
       console.error('Erro ao salvar a mensagem: ', err);
       return res.status(500).send({ error: 'Erro ao salvar a mensagem' });
@@ -25,7 +30,8 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
       idContato,
       mensagem: message,
       link: linkFlag,
-      createdAt: new Date().toISOString() 
+      replyTo: replyValue,
+      createdAt: new Date().toISOString(),
     };
 
     const io = req.app.get('io');

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import MessageOption from './MessageOption';
 import EditMessagePopup from './EditMessagePopup';
-import Swal from 'sweetalert2';
 
 interface Message {
   id: number;
@@ -11,16 +10,18 @@ interface Message {
   mensagem: string;
   link: boolean;
   createdAt: string;
+  replyTo?: number | null;
 }
 
 interface MessageListProps {
   currentUserId: number;
   contactId: number;
+  onReplyMessage?: (message: Message) => void;
 }
 
 const socket = io('http://localhost:3000');
 
-const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId }) => {
+const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onReplyMessage }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
 
@@ -115,22 +116,33 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId }) =
     <div className="message-list">
       {messages.map((message) => {
         const isMyMessage = message.idUser === currentUserId;
+        let repliedMessage;
+        if (message.replyTo) {
+          repliedMessage = messages.find(m => m.id === message.replyTo);
+        }
         return (
           <div
             key={message.id}
             className={`message ${isMyMessage ? 'my-message' : 'contact-message'}`}
           >
+            {repliedMessage && (
+              <div className="replied-message-box">
+                <strong>Resposta: </strong>
+                <span>{repliedMessage.mensagem}</span>
+              </div>
+            )}
             <MessageOption
+              messageId={message.id}
               message={message.mensagem}
               link={message.link}
               createdAt={message.createdAt}
               isMine={isMyMessage}
               onCopy={() => handleCopyMessage(message.mensagem)}
-              onReply={() => console.log('Responder mensagem', message.id)}
+              onReply={() => onReplyMessage && onReplyMessage(message)}
               onEdit={() => handleEditMessage(message.id, message.mensagem)}
               onDelete={() => handleDeleteMessage(message.id)}
             />
-          </div>
+          </div> 
         );
       })}
 

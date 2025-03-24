@@ -3,6 +3,17 @@ import { IoMdMore, IoMdClose, IoMdSend } from "react-icons/io";
 import { MdAdd } from "react-icons/md";
 import { AiFillAudio } from "react-icons/ai";
 import MessageList from './MessageList'; 
+import { IoClose } from 'react-icons/io5';
+
+interface Message {
+  id: number;
+  idUser: number;
+  idContato: number;
+  mensagem: string;
+  link: boolean;
+  createdAt: string;
+  replyTo?: number | null;
+}
 
 interface ChatProps {
   selectedContactId: number | null;
@@ -23,6 +34,7 @@ interface ContactInfo {
 const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails, idUser }) => {
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const [message, setMessage] = useState<string>('');
+  const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
 
   useEffect(() => {
     if (!selectedContactId || !idUser) return;
@@ -57,9 +69,13 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
     setShowContactDetails(false);
   };
 
+  const handleReplyMessage = (message: Message) => {
+    setReplyingMessage(message);
+  };
+
   const handleSendMessage = async () => {
     if (!message.trim() || !idUser || !selectedContactId) return;
-    
+  
     try {
       const response = await fetch('http://localhost:3000/api/chat/salvarMensagem', {
         method: 'POST',
@@ -67,20 +83,22 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
           idUser,
           idContato: selectedContactId,
           message,
+          replyTo: replyingMessage ? replyingMessage.id : null,
         }),
         headers: {
           'Content-Type': 'application/json'
         }
       });
-
+  
       const result = await response.json();
       if (result.message === 'Mensagem enviada com sucesso') {
         setMessage('');
+        setReplyingMessage(null);
       }
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };  
+  };
 
   if (!contactInfo) {
     return <div>Loading contact info...</div>;
@@ -106,9 +124,25 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
 
         <section className='Chat'>
           {idUser && selectedContactId && (
-            <MessageList currentUserId={idUser} contactId={selectedContactId} />
+            <MessageList
+              currentUserId={idUser}
+              contactId={selectedContactId}
+              onReplyMessage={handleReplyMessage}
+            />
           )}
         </section>
+
+        {replyingMessage && (
+          <div className="reply-box">
+            <div className="mensagemReply">
+              <strong>Respondendo</strong>
+              <span>{replyingMessage.mensagem}</span>
+            </div>
+            <button className='btnCloseReply' onClick={() => setReplyingMessage(null)}>
+              <IoClose />
+            </button>
+          </div>
+        )}
 
         <section className="footerChat">
           <div className="infoFC">

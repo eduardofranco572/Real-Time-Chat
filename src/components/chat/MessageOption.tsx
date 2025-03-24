@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { IoIosArrowDown } from "react-icons/io";
 
 interface MessageOptionProps {
+  messageId: number;       
   message: string;
   link: boolean;
   createdAt: string;
@@ -13,6 +14,7 @@ interface MessageOptionProps {
 }
 
 const MessageOption: React.FC<MessageOptionProps> = ({
+  messageId,
   message,
   link,
   createdAt,
@@ -39,18 +41,21 @@ const MessageOption: React.FC<MessageOptionProps> = ({
   };
 
   return (
-    <div className="message-container">
+    <div className={`message-container ${menuOpen ? 'active' : ''}`}>
       <div className="message-content">{renderMessageContent()}</div>
       <div className="horaMensagem">
         <span>
           {new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
-      <div className="options-container">
-        <IoIosArrowDown  onClick={handleToggleMenu} style={{ cursor: 'pointer' }} />
+      <div 
+        className="options-container" 
+        onMouseLeave={() => setMenuOpen(false)}
+      >
+        <IoIosArrowDown onClick={handleToggleMenu} style={{ cursor: 'pointer' }} />
         {menuOpen && (
           <div className="dropdown-menu">
-             <button
+            <button
               onClick={() => {
                 onReply && onReply();
                 setMenuOpen(false);
@@ -66,7 +71,6 @@ const MessageOption: React.FC<MessageOptionProps> = ({
             >
               Copiar
             </button>
-        
             {isMine && (
               <>
                 <button
