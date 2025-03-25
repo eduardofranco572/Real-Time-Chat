@@ -193,9 +193,26 @@
     align-items: center;
 } 
 
-.Chat{
+.Chat {
+    overflow-y: scroll;
+    overflow-x: hidden;
     height: 100%;
-    padding: 1rem 3rem 0 3rem;
+    padding: 1rem 3rem 1rem 3rem;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+.Chat::-webkit-scrollbar {
+    width: 8px;
+}
+
+.Chat::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.Chat::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
 }
 
 .IconeContatoChat{
@@ -214,6 +231,7 @@
     border-radius: 12px;
     max-width: 70%;
     display: flex;
+    flex-direction: column;
 }
 
 .my-message {
@@ -432,4 +450,16 @@
 .btnCloseReply svg:hover{
     transform: scale(1.1);
     transition 0.1s;
+}
+
+.replied-message-box{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #a3a3a329;
+    width: 90%;
+    padding: 7px;
+    border-radius: 5px;
+    user-select: none;
+    margin-bottom: 5px;
 }

@@ -46,27 +46,31 @@ const isLink = (text: string): boolean => {
 };
 
 router.post('/getMessages', (req: Request, res: Response) => {
-    const { idUser, idContato } = req.body;
+  const { idUser, idContato } = req.body;
+
+  if (!idUser || !idContato) {
+      return res.status(400).send({ error: 'Dados incompletos' });
+  }
+
+  const sql = `
+    SELECT chat.*, contatos.nomeContato 
+    FROM chat 
+    LEFT JOIN contatos 
+      ON chat.idUser = contatos.idContato AND contatos.idUser = ?
+    WHERE (chat.idUser = ? AND chat.idContato = ?)
+      OR (chat.idUser = ? AND chat.idContato = ?)
+    ORDER BY chat.id ASC
+  `;
     
-    if (!idUser || !idContato) {
-        return res.status(400).send({ error: 'Dados incompletos' });
+  db.query(sql, [idUser, idUser, idContato, idContato, idUser], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar mensagens: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar mensagens' });
     }
-  
-    const sql = `
-        SELECT * FROM chat
-        WHERE (idUser = ? AND idContato = ?)
-            OR (idUser = ? AND idContato = ?)
-        ORDER BY id ASC
-    `;
-    
-    db.query(sql, [idUser, idContato, idContato, idUser], (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar mensagens: ', err);
-            return res.status(500).send({ error: 'Erro ao buscar mensagens' });
-        }
-        res.send({ messages: results });
-    });
+    res.send({ messages: results });
+  });
 });
+
 
 router.delete('/excluirMensagem', (req: Request, res: Response) => {
   const { id } = req.body;

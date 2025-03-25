@@ -11,6 +11,7 @@ interface Message {
   link: boolean;
   createdAt: string;
   replyTo?: number | null;
+  nomeUsuario?: string; 
 }
 
 interface MessageListProps {
@@ -127,10 +128,13 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
           >
             {repliedMessage && (
               <div className="replied-message-box">
-                <strong>Resposta: </strong>
+                <strong>
+                  {repliedMessage.nomeContato ? repliedMessage.nomeContato : 'Você'} 
+                </strong>
                 <span>{repliedMessage.mensagem}</span>
               </div>
             )}
+
             <MessageOption
               messageId={message.id}
               message={message.mensagem}

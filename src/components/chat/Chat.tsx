@@ -13,6 +13,7 @@ interface Message {
   link: boolean;
   createdAt: string;
   replyTo?: number | null;
+  nomeContato?: string; // Novo campo vindo do backend, se existir
 }
 
 interface ChatProps {
@@ -135,7 +136,9 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
         {replyingMessage && (
           <div className="reply-box">
             <div className="mensagemReply">
-              <strong>Respondendo</strong>
+              <strong>
+                {replyingMessage.nomeContato ? replyingMessage.nomeContato : 'Você'}
+              </strong>
               <span>{replyingMessage.mensagem}</span>
             </div>
             <button className='btnCloseReply' onClick={() => setReplyingMessage(null)}>
