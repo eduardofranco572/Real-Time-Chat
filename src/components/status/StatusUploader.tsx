@@ -11,8 +11,6 @@ const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, 
   const [caption, setCaption] = useState<string>('');
 
   const handleSave = () => {
-    alert('Botão Postar clicado!');
-    console.log('uploadedMedia:', uploadedMedia);
     if (uploadedMedia) {
       onSaveStatus(uploadedMedia, caption);
     } else {

@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { IoMdMore, IoMdClose, IoMdSend } from "react-icons/io";
 import { MdAdd } from "react-icons/md";
 import { AiFillAudio } from "react-icons/ai";
-import MessageList from './MessageList'; 
 import { IoClose } from 'react-icons/io5';
+import { IoDocumentText } from "react-icons/io5";
+import { IoMdPhotos } from "react-icons/io";
+
+import MessageList from './MessageList'; 
+import ChatMediaUploader from './ChatMediaUploader';
 
 interface Message {
   id: number;
@@ -13,7 +17,8 @@ interface Message {
   link: boolean;
   createdAt: string;
   replyTo?: number | null;
-  nomeContato?: string; // Novo campo vindo do backend, se existir
+  nomeContato?: string;
+  mediaUrl?: string;
 }
 
 interface ChatProps {
@@ -36,6 +41,9 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const [message, setMessage] = useState<string>('');
   const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
+  const [showAddCard, setShowAddCard] = useState<boolean>(false);
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     if (!selectedContactId || !idUser) return;
@@ -101,6 +109,31 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
     }
   };
 
+  const handleSendMedia = async (file: File, caption: string) => {
+    const formData = new FormData();
+    formData.append('mediaChat', file);
+    formData.append('legenda', caption);
+    formData.append('idUser', idUser?.toString() || '');
+    formData.append('idContato', selectedContactId?.toString() || '');
+    formData.append('message', caption);
+  
+    try {
+      const response = await fetch('http://localhost:3000/api/chat/salvarMensagemMedia', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setMessages(prevMessages => [...prevMessages, result.newMessage]);
+        alert('Mensagem com mídia enviada com sucesso!');
+      } else {
+        alert('Erro ao enviar mensagem: ' + (result.error || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+    }
+  };
+
   if (!contactInfo) {
     return <div>Loading contact info...</div>;
   }
@@ -128,6 +161,8 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             <MessageList
               currentUserId={idUser}
               contactId={selectedContactId}
+              messages={messages}
+              setMessages={setMessages}
               onReplyMessage={handleReplyMessage}
             />
           )}
@@ -147,10 +182,38 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
           </div>
         )}
 
+        {showMediaUploader && (
+          <ChatMediaUploader
+            onSendMedia={handleSendMedia}
+            onClose={() => setShowMediaUploader(false)}
+          />
+        )}
+
         <section className="footerChat">
           <div className="infoFC">
-            <div className="topico2">
-              <MdAdd/>
+            <div className="topico2-container" style={{ position: 'relative' }}>
+              {showAddCard && (
+                <div className="add-options-card">
+                  <div className="itensAddOptions">
+                    <button>
+                      <IoDocumentText />
+                      Documentos
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowMediaUploader(true);
+                        setShowAddCard(false);
+                      }}
+                    >
+                      <IoMdPhotos />
+                      Fotos e Vídeos
+                    </button>
+                  </div>
+                </div>
+              )}
+              <div className="topico2" onClick={() => setShowAddCard(prev => !prev)}>
+                <MdAdd/>
+              </div>
             </div>
             <input
               className="inputinfosFC"

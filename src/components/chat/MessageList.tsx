@@ -11,12 +11,15 @@ interface Message {
   link: boolean;
   createdAt: string;
   replyTo?: number | null;
-  nomeUsuario?: string; 
+  nomeUsuario?: string;
+  mediaUrl?: string; 
 }
 
 interface MessageListProps {
   currentUserId: number;
   contactId: number;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   onReplyMessage?: (message: Message) => void;
 }
 
@@ -132,6 +135,16 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
                   {repliedMessage.nomeContato ? repliedMessage.nomeContato : 'Você'} 
                 </strong>
                 <span>{repliedMessage.mensagem}</span>
+              </div>
+            )}
+
+            {message.mediaUrl && (
+              <div className="media-content">
+                {message.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                  <video controls src={message.mediaUrl} />
+                ) : (
+                  <img src={message.mediaUrl} alt="Conteúdo Anexo" />
+                )}
               </div>
             )}
 
