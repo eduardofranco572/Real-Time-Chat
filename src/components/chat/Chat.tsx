@@ -1,25 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { IoMdMore, IoMdClose, IoMdSend } from "react-icons/io";
 import { MdAdd } from "react-icons/md";
 import { AiFillAudio } from "react-icons/ai";
 import { IoClose } from 'react-icons/io5';
 import { IoDocumentText } from "react-icons/io5";
 import { IoMdPhotos } from "react-icons/io";
-
 import MessageList from './MessageList'; 
 import ChatMediaUploader from './ChatMediaUploader';
-
-interface Message {
-  id: number;
-  idUser: number;
-  idContato: number;
-  mensagem: string;
-  link: boolean;
-  createdAt: string;
-  replyTo?: number | null;
-  nomeContato?: string;
-  mediaUrl?: string;
-}
+import useContactInfo, { ContactInfo } from '../../hooks/chatHooks/useContactInfo';
+import useMessages from '../../hooks/chatHooks/useMessages';
 
 interface ChatProps {
   selectedContactId: number | null;
@@ -28,57 +17,20 @@ interface ChatProps {
   idUser: number | null; 
 }
 
-interface ContactInfo {
-  nome: string;
-  email: string;
-  img?: string;
-  nomeContato: string;
-  imageUrl: string;
-  descricao: string;
-}
-
 const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails, idUser }) => {
-  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const [message, setMessage] = useState<string>('');
-  const [replyingMessage, setReplyingMessage] = useState<Message | null>(null);
+  const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [showAddCard, setShowAddCard] = useState<boolean>(false);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
 
-  useEffect(() => {
-    if (!selectedContactId || !idUser) return;
-
-    const fetchContactInfo = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/api/contacts/InfoContato', {
-          method: 'POST',
-          body: JSON.stringify({ idUser, idContato: selectedContactId }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        const result = await response.json();
-  
-        if (result.message === 'ok') {
-          setContactInfo({
-            ...result,
-            imageUrl: result.imageUrl || '',
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching contact info:', error);
-      }
-    };
-
-    fetchContactInfo();
-  }, [selectedContactId, idUser]);
+  const contactInfo = useContactInfo(selectedContactId, idUser);
+  const { messages, setMessages } = useMessages(idUser as number, selectedContactId as number);
 
   const handleHideDetails = () => {
     setShowContactDetails(false);
   };
 
-  const handleReplyMessage = (message: Message) => {
+  const handleReplyMessage = (message: any) => {
     setReplyingMessage(message);
   };
 
@@ -124,8 +76,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
       });
       const result = await response.json();
       if (response.ok) {
-        setMessages(prevMessages => [...prevMessages, result.newMessage]);
-        alert('Mensagem com mídia enviada com sucesso!');
+        setMessages(prev => [...prev, result.newMessage]);
       } else {
         alert('Erro ao enviar mensagem: ' + (result.error || 'Erro desconhecido'));
       }

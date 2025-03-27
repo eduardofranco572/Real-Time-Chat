@@ -1,19 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import React, { useState } from 'react';
+import { IoClose } from 'react-icons/io5';
 import MessageOption from './MessageOption';
 import EditMessagePopup from './EditMessagePopup';
-
-interface Message {
-  id: number;
-  idUser: number;
-  idContato: number;
-  mensagem: string;
-  link: boolean;
-  createdAt: string;
-  replyTo?: number | null;
-  nomeUsuario?: string;
-  mediaUrl?: string; 
-}
+import { Message } from '../../hooks/chatHooks/useMessages';
 
 interface MessageListProps {
   currentUserId: number;
@@ -23,25 +12,14 @@ interface MessageListProps {
   onReplyMessage?: (message: Message) => void;
 }
 
-const socket = io('http://localhost:3000');
-
-const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onReplyMessage }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+const MessageList: React.FC<MessageListProps> = ({
+  currentUserId,
+  contactId,
+  messages,
+  setMessages,
+  onReplyMessage
+}) => {
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/chat/getMessages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idUser: currentUserId, idContato: contactId }),
-      });
-      const result = await response.json();
-      setMessages(result.messages);
-    } catch (error) {
-      console.error("Erro ao buscar mensagens:", error);
-    }
-  };
 
   const handleEditMessage = (messageId: number, currentText: string) => {
     setEditingMessage({ id: messageId, text: currentText });
@@ -49,12 +27,8 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
 
   const handleCopyMessage = (messageText: string) => {
     navigator.clipboard.writeText(messageText)
-      .then(() => {
-        console.log("Texto copiado com sucesso!");
-      })
-      .catch((err) => {
-        console.error("Erro ao copiar texto: ", err);
-      });
+      .then(() => console.log("Texto copiado com sucesso!"))
+      .catch((err) => console.error("Erro ao copiar texto: ", err));
   };
   
   const handleDeleteMessage = async (messageId: number) => {
@@ -67,7 +41,7 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
   
       const data = await response.json();
       if (response.ok) {
-        setMessages(prevMessages => prevMessages.filter(m => m.id !== messageId));
+        setMessages(prev => prev.filter(m => m && m.id !== messageId));
       } else {
         console.error("Erro ao excluir mensagem:", data.error);
       }
@@ -85,10 +59,9 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
       })
       .then(response => response.json())
       .then(data => {
-        console.log(data.message);
-        setMessages(prevMessages =>
-          prevMessages.map(msg =>
-            msg.id === editingMessage.id ? { ...msg, mensagem: newText } : msg
+        setMessages(prev =>
+          prev.map(msg =>
+            msg && msg.id === editingMessage.id ? { ...msg, mensagem: newText } : msg
           )
         );
         setEditingMessage(null);
@@ -97,33 +70,15 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
     }
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, [currentUserId, contactId]);
-
-  useEffect(() => {
-    socket.on('newMessage', (newMessage: Message) => {
-      if (
-        (newMessage.idUser === currentUserId && newMessage.idContato === contactId) ||
-        (newMessage.idUser === contactId && newMessage.idContato === currentUserId)
-      ) {
-        setMessages(prevMessages => [...prevMessages, newMessage]);
-      }
-    });
-
-    return () => {
-      socket.off('newMessage');
-    };
-  }, [currentUserId, contactId]);
-
   return (
     <div className="message-list">
-      {messages.map((message) => {
-        const isMyMessage = message.idUser === currentUserId;
-        let repliedMessage;
-        if (message.replyTo) {
-          repliedMessage = messages.find(m => m.id === message.replyTo);
-        }
+      {messages.filter(message => message).map((message) => {
+        const isMyMessage = Number(message.idUser) === currentUserId;
+        const repliedMessage =
+          message.replyTo && message.replyTo !== 0 
+            ? messages.find(m => m && m.id === message.replyTo)
+            : null;
+
         return (
           <div
             key={message.id}
@@ -141,9 +96,9 @@ const MessageList: React.FC<MessageListProps> = ({ currentUserId, contactId, onR
             {message.mediaUrl && (
               <div className="media-content">
                 {message.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
-                  <video controls src={message.mediaUrl} />
+                  <video controls src={message.mediaUrl + `?t=${Date.now()}`} />
                 ) : (
-                  <img src={message.mediaUrl} alt="Conteúdo Anexo" />
+                  <img src={message.mediaUrl + `?t=${Date.now()}`} alt="Conteúdo Anexo" />
                 )}
               </div>
             )}

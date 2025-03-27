@@ -38,12 +38,12 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
   }
   
   const linkFlag = isLink(message);
+  const replyValue = (!replyTo || replyTo === 0) ? null : replyTo;
 
   const sql = `
     INSERT INTO chat (idUser, idContato, mensagem, link, replyTo)
     VALUES (?, ?, ?, ?, ?)
   `;
-  const replyValue = replyTo !== undefined ? replyTo : null;
   
   db.query(sql, [idUser, idContato, message, linkFlag, replyValue], (err, result) => {
     if (err) {
@@ -97,7 +97,6 @@ router.post('/getMessages', (req: Request, res: Response) => {
     res.send({ messages: results });
   });
 });
-
 
 router.delete('/excluirMensagem', (req: Request, res: Response) => {
   const { id } = req.body;
