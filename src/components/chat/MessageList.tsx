@@ -3,6 +3,7 @@ import { IoClose } from 'react-icons/io5';
 import MessageOption from './MessageOption';
 import EditMessagePopup from './EditMessagePopup';
 import { Message } from '../../hooks/chatHooks/useMessages';
+import ImageModal from './ImageModal'
 
 interface MessageListProps {
   currentUserId: number;
@@ -20,6 +21,7 @@ const MessageList: React.FC<MessageListProps> = ({
   onReplyMessage
 }) => {
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const handleEditMessage = (messageId: number, currentText: string) => {
     setEditingMessage({ id: messageId, text: currentText });
@@ -98,7 +100,12 @@ const MessageList: React.FC<MessageListProps> = ({
                 {message.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
                   <video controls src={message.mediaUrl + `?t=${Date.now()}`} />
                 ) : (
-                  <img src={message.mediaUrl + `?t=${Date.now()}`} alt="Conteúdo Anexo" />
+                  <img
+                    src={message.mediaUrl + `?t=${Date.now()}`}
+                    alt="Conteúdo Anexo"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setSelectedImage(message.mediaUrl)}
+                  />
                 )}
               </div>
             )}
@@ -117,6 +124,10 @@ const MessageList: React.FC<MessageListProps> = ({
           </div> 
         );
       })}
+                    
+      {selectedImage && (
+        <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
+      )}
 
       {editingMessage && (
         <EditMessagePopup
