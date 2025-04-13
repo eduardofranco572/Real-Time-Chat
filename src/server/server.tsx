@@ -29,7 +29,6 @@ app.use(cors({
   credentials: true
 }));
 
-
 app.use('/', router);
 
 app.get('/', (req: Request, res: Response) => {
@@ -39,4 +38,3 @@ app.get('/', (req: Request, res: Response) => {
 server.listen(port, () => {
   console.log(`Servidor rodando em http://localhost:${port}`);
 });
-

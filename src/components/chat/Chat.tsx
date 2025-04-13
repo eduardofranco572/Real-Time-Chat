@@ -7,6 +7,7 @@ import { IoDocumentText } from "react-icons/io5";
 import { IoMdPhotos } from "react-icons/io";
 import MessageList from './MessageList'; 
 import ChatMediaUploader from './ChatMediaUploader';
+import ChatDocsUploader from './ChatDocsUploader'; 
 import useContactInfo, { ContactInfo } from '../../hooks/chatHooks/useContactInfo';
 import useMessages from '../../hooks/chatHooks/useMessages';
 
@@ -22,6 +23,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [showAddCard, setShowAddCard] = useState<boolean>(false);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [showDocsUploader, setShowDocsUploader] = useState(false);
 
   const contactInfo = useContactInfo(selectedContactId, idUser);
   const { messages, setMessages } = useMessages(idUser as number, selectedContactId as number);
@@ -85,6 +87,30 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
     }
   };
 
+  const handleSendDocs = async (file: File, caption: string) => {
+    const formData = new FormData();
+    formData.append('mediaChat', file);
+    formData.append('legenda', caption);
+    formData.append('idUser', idUser?.toString() || '');
+    formData.append('idContato', selectedContactId?.toString() || '');
+    formData.append('message', caption);
+    formData.append('nomeDocs', file.name);
+  
+    try {
+      const response = await fetch('http://localhost:3000/api/chat/salvarDocument', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        alert('Erro ao enviar documento: ' + (result.error || 'Erro desconhecido'));
+      }
+
+    } catch (error) {
+      console.error('Erro ao enviar documento:', error);
+    }
+  };
+  
   if (!contactInfo) {
     return <div>Loading contact info...</div>;
   }
@@ -140,22 +166,30 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
           />
         )}
 
+        {showDocsUploader && (
+          <ChatDocsUploader
+            onSendMedia={handleSendDocs}
+            onClose={() => setShowDocsUploader(false)}
+          />
+        )}
+
         <section className="footerChat">
           <div className="infoFC">
             <div className="topico2-container" style={{ position: 'relative' }}>
               {showAddCard && (
                 <div className="add-options-card">
                   <div className="itensAddOptions">
-                    <button>
+                    <button onClick={() => {
+                      setShowDocsUploader(true);
+                      setShowAddCard(false);
+                    }}>
                       <IoDocumentText />
                       Documentos
                     </button>
-                    <button
-                      onClick={() => {
-                        setShowMediaUploader(true);
-                        setShowAddCard(false);
-                      }}
-                    >
+                    <button onClick={() => {
+                      setShowMediaUploader(true);
+                      setShowAddCard(false);
+                    }}>
                       <IoMdPhotos />
                       Fotos e Vídeos
                     </button>

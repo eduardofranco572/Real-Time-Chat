@@ -11,12 +11,14 @@ export interface Message {
   replyTo?: number | null;
   nomeContato?: string;
   mediaUrl?: string;
+  nomeDocs?: string;
 }
 
 const socket = io('http://localhost:3000');
 
 const useMessages = (currentUserId: number, contactId: number) => {
   const [messages, setMessages] = useState<Message[]>([]);
+
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -37,19 +39,28 @@ const useMessages = (currentUserId: number, contactId: number) => {
   }, [currentUserId, contactId]);
 
   useEffect(() => {
-    socket.on('newMessage', (newMessage: Message) => {
-      const senderId = Number(newMessage.idUser);
-      const receiverId = Number(newMessage.idContato);
-      if (
-        (senderId === currentUserId && receiverId === contactId) ||
-        (senderId === contactId && receiverId === currentUserId)
-      ) {
-        setMessages(prevMessages => [...prevMessages, newMessage]);
-      }
-    });
+    const handleNewMessage = (newMessage: Message) => {
+      setMessages((prevMessages) => {
+        const exists = prevMessages.some(message => message.id === newMessage.id);
+        if (exists) {
+          return prevMessages;
+        }
+        const senderId = Number(newMessage.idUser);
+        const receiverId = Number(newMessage.idContato);
+        if (
+          (senderId === currentUserId && receiverId === contactId) ||
+          (senderId === contactId && receiverId === currentUserId)
+        ) {
+          return [...prevMessages, newMessage];
+        }
+        return prevMessages;
+      });
+    };
+
+    socket.on('newMessage', handleNewMessage);
 
     return () => {
-      socket.off('newMessage');
+      socket.off('newMessage', handleNewMessage);
     };
   }, [currentUserId, contactId]);
 

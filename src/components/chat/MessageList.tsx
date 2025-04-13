@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { IoClose } from 'react-icons/io5';
 import MessageOption from './MessageOption';
 import EditMessagePopup from './EditMessagePopup';
 import { Message } from '../../hooks/chatHooks/useMessages';
-import ImageModal from './ImageModal'
+import ImageModal from './ImageModal';
+import { SiGoogledocs } from 'react-icons/si';
+import { MdDownloading } from 'react-icons/md';
 
 interface MessageListProps {
   currentUserId: number;
@@ -99,6 +100,19 @@ const MessageList: React.FC<MessageListProps> = ({
               <div className="media-content">
                 {message.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
                   <video controls src={message.mediaUrl + `?t=${Date.now()}`} />
+                ) : message.mediaUrl.match(/\.(pdf|doc|docx|txt)$/i) ? (
+                  <div className="documentMessage">
+                    <div className='documentMessageIcon'>
+                      <SiGoogledocs />
+                      <p>{message.nomeDocs || 'Documento'}</p>
+                    </div>
+                    <a
+                      href={`${message.mediaUrl}`}
+                      download={message.nomeDocs || 'Documento'}
+                    >
+                      <MdDownloading />
+                    </a>
+                  </div>
                 ) : (
                   <img
                     src={message.mediaUrl + `?t=${Date.now()}`}
@@ -124,7 +138,7 @@ const MessageList: React.FC<MessageListProps> = ({
           </div> 
         );
       })}
-                    
+                  
       {selectedImage && (
         <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
       )}

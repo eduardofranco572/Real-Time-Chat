@@ -489,7 +489,7 @@
 
 .btnCloseReply svg:hover{
     transform: scale(1.1);
-    transition 0.1s;
+    transition: 0.2s;
 }
 
 .replied-message-box{
@@ -550,4 +550,59 @@
     font-size: 2rem;
     cursor: pointer;
 }
-  
+
+
+.docsImg{
+    width: 14rem;
+    height: 12rem !important;
+    margin-bottom: 2rem;
+}
+
+.documentMessage{
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    align-items: flex-start;
+    background-color: #a3a3a329;
+    width: 90%;
+    padding: 8px;
+    border-radius: 5px;
+    user-select: none;
+    margin-bottom: 5px;
+} 
+
+.documentMessage a{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+.documentMessageIcon svg,
+.documentMessage a svg{
+    width: 24px;
+    height: 24px;
+}
+
+.documentMessage a svg{
+    margin-left: 1rem;
+}
+
+.documentMessage a p{
+    font-size: 14px;
+}
+
+.documentMessageIcon{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.documentMessageIcon p{
+    font-style: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

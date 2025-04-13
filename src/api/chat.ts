@@ -30,6 +30,32 @@ const uploadChat = multer({
   }
 });
 
+
+const storageDocs = multer.diskStorage({
+  destination: function (_req, _file, cb) {
+    const uploadPath = 'upload/documentos/';
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (_req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadDocs = multer({
+  storage: storageDocs,
+  fileFilter: function (_req, file, cb) {
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas documentos são permitidos!'));
+    }
+  }
+});
+
 router.post('/salvarMensagem', (req: Request, res: Response) => {
   const { idUser, idContato, message, replyTo } = req.body;
   
@@ -106,7 +132,7 @@ router.delete('/excluirMensagem', (req: Request, res: Response) => {
   }
   
   const sql = 'DELETE FROM chat WHERE id = ?';
-  db.query(sql, [id], (err, result) => {
+  db.query(sql, [id], (err) => {
     if (err) {
       console.error('Erro ao excluir a mensagem: ', err);
       return res.status(500).send({ error: 'Erro ao excluir a mensagem' });
@@ -127,7 +153,7 @@ router.put('/editarMensagem', (req: Request, res: Response) => {
   }
 
   const sql = 'UPDATE chat SET mensagem = ? WHERE id = ?';
-  db.query(sql, [message, id], (err, result) => {
+  db.query(sql, [message, id], (err) => {
     if (err) {
       console.error('Erro ao atualizar a mensagem: ', err);
       return res.status(500).send({ error: 'Erro ao atualizar a mensagem' });
@@ -179,6 +205,50 @@ router.post('/salvarMensagemMedia', uploadChat.single('mediaChat'), (req: Reques
     io.emit('newMessage', newMessage);
 
     res.send({ message: 'Mensagem enviada com sucesso', id: result.insertId });
+  });
+});
+
+router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req: Request, res: Response) => {
+  const { idUser, idContato, message, replyTo } = req.body;
+  const nomeDocs = req.file ? req.file.originalname : null;
+  const documentPath = req.file ? `upload/documentos/${req.file.filename}` : null;
+
+  if (!idUser || !idContato) {
+    return res.status(400).send({ error: 'Dados incompletos' });
+  }
+
+  const linkFlag = message && (message.startsWith('https://') || message.startsWith('http://') || message.includes('.com'));
+  const replyValue = replyTo !== undefined ? replyTo : null;
+
+  const sql = `
+    INSERT INTO chat (idUser, idContato, mensagem, link, replyTo, mediaUrl, nomeDocs)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const params = [idUser, idContato, message, linkFlag, replyValue, documentPath, nomeDocs];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error('Erro ao salvar o documento:', err);
+      return res.status(500).send({ error: 'Erro ao salvar o documento' });
+    }
+    
+    const newMessage = {
+      id: result.insertId,
+      idUser,
+      idContato,
+      mensagem: message,
+      link: linkFlag,
+      replyTo: replyValue,
+      mediaUrl: documentPath,
+      nomeDocs,
+      createdAt: new Date().toISOString(),
+    };
+
+    const io = req.app.get('io');
+    io.emit('newMessage', newMessage);
+
+    res.send({ message: 'Documento enviado com sucesso', newMessage, id: result.insertId });
   });
 });
 
