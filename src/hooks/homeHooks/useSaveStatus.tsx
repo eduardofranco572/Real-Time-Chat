@@ -14,10 +14,10 @@ const useSaveStatus = (idUser: number | null) => {
     }
 
     const formData = new FormData();
+    formData.append('idAutor', idUser.toString());
     formData.append('mediaStatus', file);
     formData.append('legenda', caption);
-    formData.append('idAutor', idUser.toString());
-
+   
     try {
       setLoading(true);
       const response = await fetch('http://localhost:3000/api/status/salvarStatus', {

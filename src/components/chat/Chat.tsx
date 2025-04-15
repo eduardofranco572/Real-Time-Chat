@@ -65,21 +65,19 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
 
   const handleSendMedia = async (file: File, caption: string) => {
     const formData = new FormData();
-    formData.append('mediaChat', file);
-    formData.append('legenda', caption);
     formData.append('idUser', idUser?.toString() || '');
     formData.append('idContato', selectedContactId?.toString() || '');
     formData.append('message', caption);
-  
+    formData.append('legenda', caption);
+    formData.append('mediaChat', file);
+
     try {
       const response = await fetch('http://localhost:3000/api/chat/salvarMensagemMedia', {
         method: 'POST',
         body: formData,
       });
       const result = await response.json();
-      if (response.ok) {
-        setMessages(prev => [...prev, result.newMessage]);
-      } else {
+      if (!response.ok) {
         alert('Erro ao enviar mensagem: ' + (result.error || 'Erro desconhecido'));
       }
     } catch (error) {

@@ -4,15 +4,27 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const router = express.Router();
 
 const storageChat = multer.diskStorage({
-  destination: function (_req, _file, cb) {
-    const uploadPath = 'upload/imagensChat/';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+  destination: function (req, _file, cb) {
+    const idUser = req.body.idUser;
+
+    if (!idUser) {
+      return cb(new Error("idUser é obrigatório para upload de mídia."), "");
     }
-    cb(null, uploadPath);
+    
+    const userFolder = path.join('upload/imagensChat', idUser.toString());
+    if (!fs.existsSync(userFolder)) {
+      fs.mkdirSync(userFolder, { recursive: true });
+    }
+    cb(null, userFolder);
   },
   filename: function (_req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -30,14 +42,17 @@ const uploadChat = multer({
   }
 });
 
-
 const storageDocs = multer.diskStorage({
-  destination: function (_req, _file, cb) {
-    const uploadPath = 'upload/documentos/';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+  destination: function (req, _file, cb) {
+    const idUser = req.body.idUser;
+    if (!idUser) {
+      return cb(new Error("idUser é obrigatório para upload de documentos."), "");
     }
-    cb(null, uploadPath);
+    const userFolder = path.join('upload/documentos', idUser.toString());
+    if (!fs.existsSync(userFolder)) {
+      fs.mkdirSync(userFolder, { recursive: true });
+    }
+    cb(null, userFolder);
   },
   filename: function (_req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -47,7 +62,12 @@ const storageDocs = multer.diskStorage({
 const uploadDocs = multer({
   storage: storageDocs,
   fileFilter: function (_req, file, cb) {
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    const allowedTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+      'text/plain'
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -126,22 +146,47 @@ router.post('/getMessages', (req: Request, res: Response) => {
 
 router.delete('/excluirMensagem', (req: Request, res: Response) => {
   const { id } = req.body;
-  
+
   if (!id) {
     return res.status(400).send({ error: 'ID da mensagem não fornecido' });
   }
-  
-  const sql = 'DELETE FROM chat WHERE id = ?';
-  db.query(sql, [id], (err) => {
+
+  const sqlSelect = 'SELECT mediaUrl FROM chat WHERE id = ?';
+  db.query(sqlSelect, [id], (err, results) => {
     if (err) {
-      console.error('Erro ao excluir a mensagem: ', err);
-      return res.status(500).send({ error: 'Erro ao excluir a mensagem' });
+      console.error('Erro ao buscar a mensagem: ', err);
+      return res.status(500).send({ error: 'Erro ao buscar a mensagem para exclusão' });
     }
-    
-    const io = req.app.get('io');
-    io.emit('messageDeleted', { id });
-    
-    res.send({ message: 'Mensagem excluída com sucesso' });
+
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'Mensagem não encontrada' });
+    }
+
+    const mediaUrl = results[0].mediaUrl;
+
+    const sqlDelete = 'DELETE FROM chat WHERE id = ?';
+    db.query(sqlDelete, [id], (err) => {
+      if (err) {
+        console.error('Erro ao excluir a mensagem do banco: ', err);
+        return res.status(500).send({ error: 'Erro ao excluir a mensagem' });
+      }
+
+      if (mediaUrl) {
+        const filePath = join(__dirname, '../../', mediaUrl);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error('Erro ao excluir arquivo: ', unlinkErr);
+            }
+          });
+        }
+      }
+
+      const io = req.app.get('io');
+      io.emit('messageDeleted', { id });
+      res.send({ message: 'Mensagem e mídia excluídas com sucesso' });
+    });
   });
 });
 
@@ -168,7 +213,7 @@ router.put('/editarMensagem', (req: Request, res: Response) => {
 
 router.post('/salvarMensagemMedia', uploadChat.single('mediaChat'), (req: Request, res: Response) => {
   const { idUser, idContato, message, replyTo } = req.body;
-  const mediaPath = req.file ? `upload/imagensChat/${req.file.filename}` : null;
+  const mediaPath = req.file ? req.file.path : null;
 
   if (!idUser || !idContato) {
     return res.status(400).send({ error: 'Dados incompletos' });
@@ -204,14 +249,14 @@ router.post('/salvarMensagemMedia', uploadChat.single('mediaChat'), (req: Reques
     const io = req.app.get('io');
     io.emit('newMessage', newMessage);
 
-    res.send({ message: 'Mensagem enviada com sucesso', id: result.insertId });
+    res.send({ message: 'Mensagem enviada com sucesso', id: result.insertId, newMessage });
   });
 });
 
 router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req: Request, res: Response) => {
   const { idUser, idContato, message, replyTo } = req.body;
+  const documentPath = req.file ? req.file.path : null;
   const nomeDocs = req.file ? req.file.originalname : null;
-  const documentPath = req.file ? `upload/documentos/${req.file.filename}` : null;
 
   if (!idUser || !idContato) {
     return res.status(400).send({ error: 'Dados incompletos' });

@@ -9,9 +9,9 @@ const router = express.Router();
 // Configuração do multer
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
-    const uploadPath = 'upload/';
+    const uploadPath = 'upload/imagensUser';
     if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -65,7 +65,7 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
       const contatos = results.map((contato: any) => ({
         id: contato.idContato,
         nomeContato: contato.nomeContato,
-        imageUrl: contato.img ? `../../upload/${contato.img}` : ''
+        imageUrl: contato.img ? `../../upload/imagensUser/${contato.img}` : ''
       }));
       
       res.send({ message: 'ok', contatos });
@@ -87,7 +87,7 @@ router.post('/InfoUser', (req: Request, res: Response) => {
 
     if (results.length > 0) {
       const { nome, descricao, img, email } = results[0];
-      const imageUrl = img ? `../../upload/${img}` : '';
+      const imageUrl = img ? `../../upload/imagensUser/${img}` : '';
       res.send({ message: 'ok', nome, descricao, imageUrl, email });
     } else {
       res.send({ message: 'Nenhum contato encontrado para o usuário' });
@@ -112,7 +112,7 @@ router.post('/InfoContato', (req: Request, res: Response) => {
 
     if (results.length > 0) {
       const contatoData = results[0];
-      const imageUrl = contatoData.img ? `../../upload/${contatoData.img}` : '';
+      const imageUrl = contatoData.img ? `../../upload/imagensUser/${contatoData.img}` : '';
       res.send({ message: 'ok', ...contatoData, imageUrl });
     } else {
       res.send({ message: 'Contato não encontrado' });

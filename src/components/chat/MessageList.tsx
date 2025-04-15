@@ -16,13 +16,13 @@ interface MessageListProps {
 
 const MessageList: React.FC<MessageListProps> = ({
   currentUserId,
-  contactId,
   messages,
   setMessages,
   onReplyMessage
 }) => {
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null | undefined>(null);
+
 
   const handleEditMessage = (messageId: number, currentText: string) => {
     setEditingMessage({ id: messageId, text: currentText });
@@ -61,7 +61,7 @@ const MessageList: React.FC<MessageListProps> = ({
         body: JSON.stringify({ id: editingMessage.id, message: newText })
       })
       .then(response => response.json())
-      .then(data => {
+      .then(() => {
         setMessages(prev =>
           prev.map(msg =>
             msg && msg.id === editingMessage.id ? { ...msg, mensagem: newText } : msg

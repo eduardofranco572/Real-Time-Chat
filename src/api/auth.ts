@@ -11,12 +11,11 @@ const SECRET_KEY = '2323e12a';
 
 router.use(cookieParser());
 
-// Configuração do multer para upload de imagens de usuário
-const storage = multer.diskStorage({
+const storageUserImages = multer.diskStorage({
   destination: function (_req, _file, cb) {
-    const uploadPath = 'upload/';
+    const uploadPath = 'upload/imagensUser';
     if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath);
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -24,8 +23,8 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage });
 
+const upload = multer({ storage: storageUserImages });
 
 router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
@@ -52,7 +51,6 @@ router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) =>
     });
   });
 });
-
 
 router.post('/login', (req: Request, res: Response) => {
   const { email, senha } = req.body;

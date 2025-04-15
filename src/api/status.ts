@@ -13,12 +13,16 @@ const router = express.Router();
 
 // Configuração do multer para aceitar imagens e vídeos
 const storageStatus = multer.diskStorage({
-  destination: function (_req, _file, cb) {
-    const uploadPath = 'upload/status/';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+  destination: function (req, _file, cb) {
+    const idAutor = req.body.idAutor;
+    if (!idAutor) {
+      return cb(new Error("idAutor é obrigatório para upload de status."), "");
     }
-    cb(null, uploadPath);
+    const userFolder = path.join('upload/status', idAutor.toString());
+    if (!fs.existsSync(userFolder)) {
+      fs.mkdirSync(userFolder, { recursive: true });
+    }
+    cb(null, userFolder);
   },
   filename: function (_req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -27,7 +31,7 @@ const storageStatus = multer.diskStorage({
 
 const uploadStatus = multer({ 
   storage: storageStatus,
-  fileFilter: function (req, file, cb) {
+  fileFilter: function (_req, file, cb) {
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
       cb(null, true);
     } else {
@@ -35,7 +39,6 @@ const uploadStatus = multer({
     }
   }
 });
-
 
 router.get('/getStatus/:idUser', (req: Request, res: Response) => {
   const { idUser } = req.params;
@@ -124,7 +127,7 @@ router.get('/getUserStatuses/:idContato', (req: Request, res: Response) => {
         id: status.id,
         imgStatus: `../../${status.imgStatus}`,
         legenda: status.legenda,
-        imgContato: `../../upload/${status.imgContato}`,
+        imgContato: `../../upload/imagensUser/${status.imgContato}`,
       })),
     });
   });
@@ -132,7 +135,7 @@ router.get('/getUserStatuses/:idContato', (req: Request, res: Response) => {
 
 router.post('/salvarStatus', uploadStatus.single('mediaStatus'), (req: Request, res: Response) => {
   const { idAutor, legenda } = req.body;
-  const mediaStatus = req.file ? `upload/status/${req.file.filename}` : null;
+  const mediaStatus = req.file ? req.file.path : null;
 
   if (!idAutor) {
     return res.status(400).send({ error: 'ID do autor não fornecido' });
@@ -219,7 +222,7 @@ router.post('/statusUsuario', (req: Request, res: Response) => {
       id: status.id,
       imgStatus: `../../${status.imgStatus}`,
       legenda: status.legenda,
-      imgContato: `../../upload/${status.imgUser}`,
+      imgContato: `../../upload/imagensUser/${status.imgUser}`,
     }));
 
     res.send({ message: 'ok', statuses });

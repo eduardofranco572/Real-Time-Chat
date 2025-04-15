@@ -566,8 +566,7 @@
     display: flex;
     align-items: flex-start;
     background-color: #a3a3a329;
-    width: 90%;
-    padding: 8px;
+    padding: 14px;
     border-radius: 5px;
     user-select: none;
     margin-bottom: 5px;
