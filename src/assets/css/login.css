@@ -3,19 +3,19 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
 }
 
 .conteinerCadastrar, .conteinerLogar{
+    height: 34rem;
+    width: 29rem;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    height: 27rem;
-    width: 27rem;
-    background-color: var(--color-container-clear);
     border-radius: 2rem;
     padding: 1rem;
-}
-
-.conteinerCadastrar{
-    height: 37rem;
-    width: 29rem;
+    border: 2px solid rgba(255, 255, 255, .25);
+    backdrop-filter: blur(5px);
+    -webkit-box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);
+    -moz-box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);
+    box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);
 }
 
 .formLogin{
@@ -34,22 +34,38 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
     text-transform: uppercase;
 }
 
+.subtitleFormLogin{
+    font-size: 15px;
+    color: var(--color-subtitle);
+    max-width: 20rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
 .inputinfos{
     width: 22rem;
     padding: 10px;
     border-radius: 0.5rem;
     border: 2px solid white;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     background-color: transparent;
     font-size: 16px;
 }
 
-.cadastro{
+.recuperaSenha {
     display: flex;
     width: 100%;
     justify-content: end;
     align-items: center;
     margin-top: 1.5rem;
+}
+
+.cadastro {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
 }
 
 input:focus {

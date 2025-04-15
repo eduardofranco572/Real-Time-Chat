@@ -86,6 +86,7 @@ function LoginForm() {
         <form className="formLogin" encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit} 
         >
             <h1 className='titleForm'>Entrar</h1>
+            <p className='subtitleFormLogin'>Bem vindo de volta! Para continuar conectado, faça login com suas informações.</p>
             <input
                 className="inputinfos"
                 type="email"
@@ -104,6 +105,17 @@ function LoginForm() {
                 onChange={(e) => setSenha(e.target.value)}
                 required
             />
+
+            <div className="recuperaSenha">
+                <div className="buttoncadastro">
+                    <button>Esqueceu a senha?</button>
+                </div>
+            </div>
+
+            <div className="button">
+                <input type="submit" value="Entrar" />
+            </div>
+
             <div className="cadastro">
                 <p> É novo por aqui?</p>
                 <div className="buttoncadastro">
@@ -112,9 +124,6 @@ function LoginForm() {
                 <Routes>
                     <Route path='/cadastrar' element={<CadastroForm/>}/>
                 </Routes>
-            </div>
-            <div className="button">
-                <input type="submit" value="Entrar" />
             </div>
         </form>
 

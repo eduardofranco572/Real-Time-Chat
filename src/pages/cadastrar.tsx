@@ -242,6 +242,10 @@ function CadastroForm() {
             onBlur={validaSenha}
           />
 
+          <div className="button">
+            <input type="submit" value="Cadastrar" disabled={!isEmailValid || !isSenhaValid} />
+          </div>
+
           <div className="cadastro">
             <p>Já possui uma conta?</p>
             <div className="buttoncadastro">
@@ -250,9 +254,6 @@ function CadastroForm() {
               <Routes>
                 <Route path='/login' element={<LoginForm/>}/>
               </Routes>
-          </div>
-          <div className="button">
-          <input type="submit" value="Cadastrar" disabled={!isEmailValid || !isSenhaValid} />
           </div>
         </form>
 

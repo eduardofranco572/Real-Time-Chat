@@ -13,11 +13,11 @@ const ChatDocsUploader: React.FC<ChatDocsUploaderProps> = ({ onSendMedia, onClos
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [caption, setCaption] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
-  const hasAutoClicked = useRef<boolean>(false);
+  const autoClickedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (!selectedFile && inputRef.current && !hasAutoClicked.current) {
-      hasAutoClicked.current = true;
+    if (!selectedFile && inputRef.current && !autoClickedRef.current) {
+      autoClickedRef.current = true;
       inputRef.current.click();
     }
   }, [selectedFile]);
@@ -40,22 +40,23 @@ const ChatDocsUploader: React.FC<ChatDocsUploaderProps> = ({ onSendMedia, onClos
   };
 
   return (
-    <div className="statusUploaderOverlay">
-      <div className="statusUploader">
-        <div className="BtnCloseSU">
-          <button onClick={onClose}>
-            <IoMdClose />
-          </button>
-        </div>
-        <input
-          type="file"
-          accept=".pdf, .doc, .docx, .txt"
-          ref={inputRef}
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-        {selectedFile && (
-          <>
+    <>
+      <input
+        type="file"
+        accept=".pdf, .doc, .docx, .txt"
+        ref={inputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+
+      {selectedFile && (
+        <div className="statusUploaderOverlay">
+          <div className="statusUploader">
+            <div className="BtnCloseSU">
+              <button onClick={onClose}>
+                <IoMdClose />
+              </button>
+            </div>
             <div className="mediaPreview">
               <img className='docsImg' src={docs} alt="Pré-visualização do documento" />
               <h1>{selectedFile.name}</h1>
@@ -72,10 +73,10 @@ const ChatDocsUploader: React.FC<ChatDocsUploaderProps> = ({ onSendMedia, onClos
             <div className="btnPostar">
               <button onClick={handleSend}>Enviar</button>
             </div>
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

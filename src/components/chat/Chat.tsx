@@ -8,8 +8,9 @@ import { IoMdPhotos } from "react-icons/io";
 import MessageList from './MessageList'; 
 import ChatMediaUploader from './ChatMediaUploader';
 import ChatDocsUploader from './ChatDocsUploader'; 
-import useContactInfo, { ContactInfo } from '../../hooks/chatHooks/useContactInfo';
+import useContactInfo from '../../hooks/chatHooks/useContactInfo';
 import useMessages from '../../hooks/chatHooks/useMessages';
+import { useChatHandlers } from '../../hooks/chatHooks/useChatHandlers';
 
 interface ChatProps {
   selectedContactId: number | null;
@@ -27,6 +28,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
 
   const contactInfo = useContactInfo(selectedContactId, idUser);
   const { messages, setMessages } = useMessages(idUser as number, selectedContactId as number);
+  const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
 
   const handleHideDetails = () => {
     setShowContactDetails(false);
@@ -36,79 +38,31 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
     setReplyingMessage(message);
   };
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || !idUser || !selectedContactId) return;
-  
-    try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarMensagem', {
-        method: 'POST',
-        body: JSON.stringify({
-          idUser,
-          idContato: selectedContactId,
-          message,
-          replyTo: replyingMessage ? replyingMessage.id : null,
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+  const onSendMessage = async () => {
+    if (idUser && selectedContactId) {
+      await handleSendMessage({
+        idUser,
+        selectedContactId,
+        message,
+        replyingMessage,
+        setMessage,
+        setReplyingMessage,
       });
-  
-      const result = await response.json();
-      if (result.message === 'Mensagem enviada com sucesso') {
-        setMessage('');
-        setReplyingMessage(null);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
     }
   };
 
-  const handleSendMedia = async (file: File, caption: string) => {
-    const formData = new FormData();
-    formData.append('idUser', idUser?.toString() || '');
-    formData.append('idContato', selectedContactId?.toString() || '');
-    formData.append('message', caption);
-    formData.append('legenda', caption);
-    formData.append('mediaChat', file);
-
-    try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarMensagemMedia', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        alert('Erro ao enviar mensagem: ' + (result.error || 'Erro desconhecido'));
-      }
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
+  const onSendMedia = async (file: File, caption: string) => {
+    if (idUser && selectedContactId) {
+      await handleSendMedia({ idUser, selectedContactId, file, caption });
     }
   };
 
-  const handleSendDocs = async (file: File, caption: string) => {
-    const formData = new FormData();
-    formData.append('mediaChat', file);
-    formData.append('legenda', caption);
-    formData.append('idUser', idUser?.toString() || '');
-    formData.append('idContato', selectedContactId?.toString() || '');
-    formData.append('message', caption);
-    formData.append('nomeDocs', file.name);
-  
-    try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarDocument', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        const result = await response.json();
-        alert('Erro ao enviar documento: ' + (result.error || 'Erro desconhecido'));
-      }
-
-    } catch (error) {
-      console.error('Erro ao enviar documento:', error);
+  const onSendDocs = async (file: File, caption: string) => {
+    if (idUser && selectedContactId) {
+      await handleSendDocs({ idUser, selectedContactId, file, caption });
     }
   };
-  
+
   if (!contactInfo) {
     return <div>Loading contact info...</div>;
   }
@@ -159,14 +113,14 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
 
         {showMediaUploader && (
           <ChatMediaUploader
-            onSendMedia={handleSendMedia}
+            onSendMedia={onSendMedia}
             onClose={() => setShowMediaUploader(false)}
           />
         )}
 
         {showDocsUploader && (
           <ChatDocsUploader
-            onSendMedia={handleSendDocs}
+            onSendMedia={onSendDocs}
             onClose={() => setShowDocsUploader(false)}
           />
         )}
@@ -195,7 +149,7 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
                 </div>
               )}
               <div className="topico2" onClick={() => setShowAddCard(prev => !prev)}>
-                <MdAdd/>
+                <MdAdd />
               </div>
             </div>
             <input
@@ -207,13 +161,13 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  handleSendMessage();
+                  onSendMessage();
                 }
               }}
             />
             <div className="topico2">
-              <AiFillAudio/>
-              <IoMdSend onClick={handleSendMessage} />
+              <AiFillAudio />
+              <IoMdSend onClick={onSendMessage} />
             </div>
           </div>
         </section>
@@ -235,8 +189,8 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             </div>
           </div>
         </div>
-      )} 
-    </section> 
+      )}
+    </section>
   );
 };
 
