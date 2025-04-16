@@ -8,27 +8,38 @@ import { IoMdPhotos } from "react-icons/io";
 import MessageList from './MessageList'; 
 import ChatMediaUploader from './ChatMediaUploader';
 import ChatDocsUploader from './ChatDocsUploader'; 
-import useContactInfo from '../../hooks/chatHooks/useContactInfo';
+import useChatInfo from '../../hooks/chatHooks/useChatInfo'; 
 import useMessages from '../../hooks/chatHooks/useMessages';
 import { useChatHandlers } from '../../hooks/chatHooks/useChatHandlers';
 
 interface ChatProps {
-  selectedContactId: number | null;
+  selectedChatId: number | null;
   showContactDetails: boolean;
   setShowContactDetails: (visible: boolean) => void;
   idUser: number | null; 
 }
 
-const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setShowContactDetails, idUser }) => {
+const Chat: React.FC<ChatProps> = ({ selectedChatId, showContactDetails, setShowContactDetails, idUser }) => {
+  if (idUser == null) {
+    return <div>Carregando usuário…</div>;
+  }
+  if (selectedChatId == null) {
+    return <div>Selecione um chat para começar.</div>;
+  }
+
   const [message, setMessage] = useState<string>('');
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [showAddCard, setShowAddCard] = useState<boolean>(false);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
   const [showDocsUploader, setShowDocsUploader] = useState(false);
 
-  const contactInfo = useContactInfo(selectedContactId, idUser);
-  const { messages, setMessages } = useMessages(idUser as number, selectedContactId as number);
+  const chatInfo = useChatInfo(selectedChatId, idUser);
+  const { messages, setMessages } = useMessages(selectedChatId);
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
+
+  if (!chatInfo) {
+    return <div>Loading chat info...</div>;
+  }
 
   const handleHideDetails = () => {
     setShowContactDetails(false);
@@ -39,33 +50,23 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
   };
 
   const onSendMessage = async () => {
-    if (idUser && selectedContactId) {
-      await handleSendMessage({
-        idUser,
-        selectedContactId,
-        message,
-        replyingMessage,
-        setMessage,
-        setReplyingMessage,
-      });
-    }
+    await handleSendMessage({
+      idUser,
+      idChat: selectedChatId, 
+      message,
+      replyingMessage,
+      setMessage,
+      setReplyingMessage,
+    });
   };
 
   const onSendMedia = async (file: File, caption: string) => {
-    if (idUser && selectedContactId) {
-      await handleSendMedia({ idUser, selectedContactId, file, caption });
-    }
+    await handleSendMedia({ idUser, idChat: selectedChatId, file, caption });
   };
 
   const onSendDocs = async (file: File, caption: string) => {
-    if (idUser && selectedContactId) {
-      await handleSendDocs({ idUser, selectedContactId, file, caption });
-    }
+    await handleSendDocs({ idUser, idChat: selectedChatId, file, caption });
   };
-
-  if (!contactInfo) {
-    return <div>Loading contact info...</div>;
-  }
 
   return (
     <section className='chat-container'>
@@ -73,11 +74,11 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
         <section className='headerChat'>
           <div className='infosChat'>
             <div className='IconeContatoChat' onClick={() => setShowContactDetails(!showContactDetails)}>
-              <img src={contactInfo.imageUrl} alt={contactInfo.nome} />
+              <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
             </div>
             <div className='infosContatoChat'>
-              <h1>{contactInfo.nomeContato}</h1>
-              <p>{contactInfo.descricao}</p>
+              <h1>{chatInfo.nome}</h1>
+              <p>{chatInfo.descricao}</p>
             </div>
           </div>
           <div className='opcoesChat'>
@@ -86,22 +87,21 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
         </section>
 
         <section className='Chat'>
-          {idUser && selectedContactId && (
-            <MessageList
-              currentUserId={idUser}
-              contactId={selectedContactId}
-              messages={messages}
-              setMessages={setMessages}
-              onReplyMessage={handleReplyMessage}
-            />
-          )}
+          <MessageList
+            currentUserId={idUser}
+            messages={messages}
+            setMessages={setMessages}
+            onReplyMessage={handleReplyMessage}
+          />
         </section>
 
         {replyingMessage && (
           <div className="reply-box">
             <div className="mensagemReply">
               <strong>
-                {replyingMessage.nomeContato ? replyingMessage.nomeContato : 'Você'}
+                {replyingMessage.idUser === idUser
+                  ? 'Você'
+                  : replyingMessage.nomeContato}
               </strong>
               <span>{replyingMessage.mensagem}</span>
             </div>
@@ -171,20 +171,19 @@ const Chat: React.FC<ChatProps> = ({ selectedContactId, showContactDetails, setS
             </div>
           </div>
         </section>
-
       </div>
       {showContactDetails && (
         <div className='DadosContato'>
           <div className='bodyDC'>
             <div className='headerDC'>
-              <h1>Dados do contato</h1>
+              <h1>Dados do Chat</h1>
               <button onClick={handleHideDetails}><IoMdClose /></button>
             </div>
             <div className='infosDC'>
               <div className='detalhesUser'>
-                <img src={contactInfo.imageUrl} alt={contactInfo.nomeContato} />
-                <h1>{contactInfo.nomeContato}</h1>
-                <p>{contactInfo.email}</p>
+                <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
+                <h1>{chatInfo.nome}</h1>
+                <p>{chatInfo.email}</p>
               </div>
             </div>
           </div>

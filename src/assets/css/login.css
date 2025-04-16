@@ -12,6 +12,7 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
     border-radius: 2rem;
     padding: 1rem;
     border: 2px solid rgba(255, 255, 255, .25);
+    background-color: rgb(0 0 0 / 50%);
     backdrop-filter: blur(5px);
     -webkit-box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);
     -moz-box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);

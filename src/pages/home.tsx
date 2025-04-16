@@ -13,14 +13,14 @@ import useUserId from '../hooks/useUserId';
 import iconeChat from '../assets/img/chat2.svg'; 
 
 const Home: React.FC = () => {
-  const [selectedContactId, setSelectedContactId] = React.useState<number | null>(null);
+  const idUser = useUserId();
+  const [selectedChatId, setSelectedChatId] = React.useState<number | null>(null);
   const [showContactDetails, setShowContactDetails] = React.useState(false);
 
-  const handleSelectContact = (id: number) => {
-    setSelectedContactId(id);
+  const handleSelectContact = (idChat: number) => {
+    setSelectedChatId(idChat);
     setShowContactDetails(false);
   };
-  const idUser = useUserId();
 
   return (
     <section className='conteinerHome'> 
@@ -28,9 +28,9 @@ const Home: React.FC = () => {
         <MenuContainer onSelectContact={handleSelectContact} />
       </div>
       <div className='bodyContainer'>
-        {selectedContactId ? (
+        {selectedChatId ? (
           <Chat 
-            selectedContactId={selectedContactId}
+            selectedChatId={selectedChatId}
             showContactDetails={showContactDetails}
             setShowContactDetails={setShowContactDetails}
             idUser={idUser}

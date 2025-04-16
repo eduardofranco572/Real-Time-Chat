@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 interface SendMessageParams {
   idUser: number;
-  selectedContactId: number;
+  idChat: number;
   message: string;
   replyingMessage: any;
   setMessage: (text: string) => void;
@@ -11,14 +11,14 @@ interface SendMessageParams {
 
 interface SendMediaParams {
   idUser: number;
-  selectedContactId: number;
+  idChat: number;
   file: File;
   caption: string;
 }
 
 interface SendDocsParams {
   idUser: number;
-  selectedContactId: number;
+  idChat: number;
   file: File;
   caption: string;
 }
@@ -27,7 +27,7 @@ export const useChatHandlers = () => {
   
   const handleSendMessage = async ({
     idUser,
-    selectedContactId,
+    idChat,
     message,
     replyingMessage,
     setMessage,
@@ -41,7 +41,7 @@ export const useChatHandlers = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idUser,
-          idContato: selectedContactId,
+          idChat,
           message,
           replyTo: replyingMessage ? replyingMessage.id : null,
         }),
@@ -59,13 +59,13 @@ export const useChatHandlers = () => {
 
   const handleSendMedia = async ({
     idUser,
-    selectedContactId,
+    idChat,
     file,
     caption,
   }: SendMediaParams): Promise<void> => {
     const formData = new FormData();
     formData.append('idUser', idUser.toString());
-    formData.append('idContato', selectedContactId.toString());
+    formData.append('idChat', idChat.toString());
     formData.append('message', caption);
     formData.append('legenda', caption);
     formData.append('mediaChat', file);
@@ -87,17 +87,17 @@ export const useChatHandlers = () => {
 
   const handleSendDocs = async ({
     idUser,
-    selectedContactId,
+    idChat,
     file,
     caption,
   }: SendDocsParams): Promise<void> => {
     const formData = new FormData();
-    formData.append('mediaChat', file);
-    formData.append('legenda', caption);
     formData.append('idUser', idUser.toString());
-    formData.append('idContato', selectedContactId.toString());
+    formData.append('idChat', idChat.toString());
     formData.append('message', caption);
     formData.append('nomeDocs', file.name);
+    formData.append('mediaChat', file);
+    formData.append('legenda', caption);
   
     try {
       const response = await fetch('http://localhost:3000/api/chat/salvarDocument', {

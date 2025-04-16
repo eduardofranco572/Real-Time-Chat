@@ -3,8 +3,8 @@ import io from 'socket.io-client';
 
 export interface Message {
   id: number;
+  idChat: number;
   idUser: number;
-  idContato: number;
   mensagem: string;
   link: boolean;
   createdAt: string;
@@ -16,53 +16,48 @@ export interface Message {
 
 const socket = io('http://localhost:3000');
 
-const useMessages = (currentUserId: number, contactId: number) => {
+const useMessages = (currentChatId: number | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
-
   useEffect(() => {
-    const fetchMessages = async () => {
+    if (!currentChatId) return;
+    (async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/chat/getMessages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idUser: currentUserId, idContato: contactId }),
-        });
-        const result = await response.json();
-        setMessages(result.messages.filter((m: Message) => m));
-      } catch (error) {
-        console.error("Erro ao buscar mensagens:", error);
+        const res = await fetch(
+          'http://localhost:3000/api/chat/getMessages',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idChat: currentChatId }),
+          }
+        );
+        const result = await res.json();
+        if (result.messages) {
+          setMessages(result.messages as Message[]);
+        }
+      } catch (err) {
+        console.error(err);
       }
-    };
-
-    fetchMessages();
-  }, [currentUserId, contactId]);
+    })();
+  }, [currentChatId]);
 
   useEffect(() => {
+    if (!currentChatId) return;
+
     const handleNewMessage = (newMessage: Message) => {
-      setMessages((prevMessages) => {
-        const exists = prevMessages.some(message => message.id === newMessage.id);
-        if (exists) {
-          return prevMessages;
-        }
-        const senderId = Number(newMessage.idUser);
-        const receiverId = Number(newMessage.idContato);
-        if (
-          (senderId === currentUserId && receiverId === contactId) ||
-          (senderId === contactId && receiverId === currentUserId)
-        ) {
-          return [...prevMessages, newMessage];
-        }
-        return prevMessages;
-      });
+      if (newMessage.idChat !== currentChatId) return;
+      setMessages(prev =>
+        prev.some(m => m.id === newMessage.id)
+          ? prev
+          : [...prev, newMessage]
+      );
     };
 
     socket.on('newMessage', handleNewMessage);
-
     return () => {
       socket.off('newMessage', handleNewMessage);
     };
-  }, [currentUserId, contactId]);
+  }, [currentChatId]);
 
   return { messages, setMessages };
 };

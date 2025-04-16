@@ -23,7 +23,13 @@ const StatusUser = lazy(() => import('../../components/status/StatusUser'));
 const StatusUploader = lazy(() => import('../status/StatusUploader'));
 
 interface MenuContainerProps {
-  onSelectContact: (id: number) => void;
+  onSelectContact: (chatId: number) => void;
+}
+
+interface Contact {
+  id: number;       
+  nomeContato: string;
+  imageUrl: string;
 }
 
 const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
@@ -67,13 +73,31 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
-    setUploaderVisible(true); 
+    setUploaderVisible(true);
   };
 
   const handleSaveStatus = async (file: File, caption: string) => {
     await saveStatus(file, caption);
     setUploaderVisible(false);
   };
+
+  const handleSelectContact = useCallback(async (idContato: number) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/contacts/getChatForContact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idUser, idContato }),
+      });
+      const result = await response.json();
+      if (result.idChat) {
+        onSelectContact(result.idChat);
+      } else {
+        console.error('Erro ao obter idChat:', result.error);
+      }
+    } catch (error) {
+      console.error('Erro na requisição do chat:', error);
+    }
+  }, [idUser, onSelectContact]);
 
   return (
     <>
@@ -87,15 +111,17 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
           setNome={setNome}
         />
       )}
+
       {isUploaderVisible && (
         <Suspense fallback={<Skeleton height={200} />}>
-         <StatusUploader
-            onSaveStatus={handleSaveStatus} 
+          <StatusUploader
+            onSaveStatus={handleSaveStatus}
             onClose={() => setUploaderVisible(false)}
             uploadedMedia={uploadedImage}
           />
         </Suspense>
       )}
+
       {menuState === 'abaStatus' && (
         <Suspense fallback={<Skeleton height={200} />}>
           <div className="abaStatus">
@@ -134,6 +160,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
           </div>
         </Suspense>
       )}
+
       {menuState === 'dadosConta' && (
         <Suspense fallback={<Skeleton height={200} />}>
           <div className="dadosConta">
@@ -145,19 +172,19 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
           </div>
         </Suspense>
       )}
+
       {menuState === 'principalMenu' && (
         <div className="principalMenu">
           <div className="containerMenu">
-            <UserInfo 
-              userInfo={userInfo} 
-              onStatusClick={() => setMenuState('abaStatus')} 
-              onAccountClick={() => setMenuState('dadosConta')} 
+            <UserInfo
+              userInfo={userInfo}
+              onStatusClick={() => setMenuState('abaStatus')}
+              onAccountClick={() => setMenuState('dadosConta')}
             />
+
             <div className="search">
               <div className="filter">
-                <span>
-                  <IoSearchOutline />
-                </span>
+                <span><IoSearchOutline /></span>
                 <input
                   className="inputSearch"
                   type="text"
@@ -167,15 +194,15 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
                 />
               </div>
             </div>
-            <ContactList 
-              contacts={contacts} 
-              onSelectContact={onSelectContact} 
+
+            <ContactList
+              contacts={contacts as Contact[]}
+              onSelectContact={handleSelectContact}
             />
           </div>
+
           <div className="footerMenu">
-            <span onClick={handleBtnOpen}>
-              <IoIosAddCircle />
-            </span>
+            <span onClick={handleBtnOpen}><IoIosAddCircle /></span>
           </div>
         </div>
       )}

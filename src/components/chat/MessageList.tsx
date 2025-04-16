@@ -8,7 +8,7 @@ import { MdDownloading } from 'react-icons/md';
 
 interface MessageListProps {
   currentUserId: number;
-  contactId: number;
+  contactId?: number;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   onReplyMessage?: (message: Message) => void;
@@ -23,7 +23,6 @@ const MessageList: React.FC<MessageListProps> = ({
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null | undefined>(null);
 
-
   const handleEditMessage = (messageId: number, currentText: string) => {
     setEditingMessage({ id: messageId, text: currentText });
   };
@@ -33,7 +32,7 @@ const MessageList: React.FC<MessageListProps> = ({
       .then(() => console.log("Texto copiado com sucesso!"))
       .catch((err) => console.error("Erro ao copiar texto: ", err));
   };
-  
+
   const handleDeleteMessage = async (messageId: number) => {
     try {
       const response = await fetch('http://localhost:3000/api/chat/excluirMensagem', {
@@ -41,7 +40,7 @@ const MessageList: React.FC<MessageListProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: messageId }),
       });
-  
+
       const data = await response.json();
       if (response.ok) {
         setMessages(prev => prev.filter(m => m && m.id !== messageId));
@@ -90,7 +89,9 @@ const MessageList: React.FC<MessageListProps> = ({
             {repliedMessage && (
               <div className="replied-message-box">
                 <strong>
-                  {repliedMessage.nomeContato ? repliedMessage.nomeContato : 'Você'} 
+                  {repliedMessage.idUser === currentUserId
+                    ? 'Você'
+                    : repliedMessage.nomeContato}
                 </strong>
                 <span>{repliedMessage.mensagem}</span>
               </div>
@@ -115,7 +116,7 @@ const MessageList: React.FC<MessageListProps> = ({
                   </div>
                 ) : (
                   <img
-                    src={message.mediaUrl + `?t=${Date.now()}`}
+                    src={message.mediaUrl + `?t=${Date.now()}`} 
                     alt="Conteúdo Anexo"
                     style={{ cursor: 'pointer' }}
                     onClick={() => setSelectedImage(message.mediaUrl)}

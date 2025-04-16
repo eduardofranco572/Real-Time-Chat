@@ -27,22 +27,70 @@ router.post('/addcontato', (req: Request, res: Response) => {
 
   db.query(sqlCheckEmail, [email], (err, result) => {
     if (err) {
-      console.error('Erro ao verificar o email: ', err);
+      console.error('Erro ao verificar o email:', err);
       return res.status(500).send({ error: 'Erro ao verificar o email' });
     }
     if (result.length === 0) {
-      return res.status(401).send('Usuario não encontrado');
+      return res.status(401).send({ error: 'Usuário não encontrado' });
     }
 
     const idContato = result[0].id;
+
     const sqlInsertContato = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
-    db.query(sqlInsertContato, [idUser, idContato, nome], (err) => {
-      if (err) {
-        console.error('Erro ao adicionar usuário: ', err);
-        return res.status(500).send({ error: 'Erro ao cadastrar usuário' });
+    db.query(sqlInsertContato, [idUser, idContato, nome], (err2) => {
+      if (err2) {
+        console.error('Erro ao adicionar contato:', err2);
+        return res.status(500).send({ error: 'Erro ao cadastrar contato' });
       }
-      res.send({ message: 'ok' });
+
+      const nomeChat = null;
+      const sqlCreateChat = "INSERT INTO chats (nomeChat) VALUES (?)";
+      db.query(sqlCreateChat, [nomeChat], (err3, chatResult) => {
+        if (err3) {
+          console.error('Erro ao criar chat:', err3);
+          return res.status(500).send({ error: 'Erro ao criar chat' });
+        }
+        const idChat = chatResult.insertId;
+
+        const sqlInsertParticipants = "INSERT INTO chat_participants (idChat, idUser) VALUES (?, ?), (?, ?)";
+        db.query(sqlInsertParticipants, [idChat, idUser, idChat, idContato], (err4) => {
+          if (err4) {
+            console.error('Erro ao inserir participantes do chat:', err4);
+            return res.status(500).send({ error: 'Erro ao criar participantes do chat' });
+          }
+
+          res.send({ message: 'Contato e chat criados com sucesso', idChat });
+        });
+      });
     });
+  });
+});
+
+router.post('/getChatForContact', (req: Request, res: Response) => {
+  const { idUser, idContato } = req.body;
+
+  if (!idUser || !idContato) {
+    return res.status(400).send({ error: 'idUser e idContato são obrigatórios' });
+  }
+
+  const sql = `
+    SELECT cp1.idChat
+    FROM chat_participants cp1
+    JOIN chat_participants cp2 ON cp1.idChat = cp2.idChat
+    WHERE cp1.idUser = ? AND cp2.idUser = ?
+    LIMIT 1
+  `;
+
+  db.query(sql, [idUser, idContato], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar o chat:', err);
+      return res.status(500).send({ error: 'Erro ao buscar o chat' });
+    }
+    if (results.length > 0) {
+      return res.send({ idChat: results[0].idChat });
+    } else {
+      return res.status(404).send({ error: 'Chat não encontrado' });
+    }
   });
 });
 

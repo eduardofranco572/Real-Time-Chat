@@ -6,33 +6,26 @@ const useAddContact = (idUser: number | null, fetchContacts: () => void) => {
             alert('Usuário não autenticado');
             return;
         }
-
-        const dataJSON = JSON.stringify({
-            email,
-            nome,
-            idUser,
-        });
-
+        const dataJSON = JSON.stringify({ email, nome, idUser });
         try {
             const response = await fetch('http://localhost:3000/api/contacts/addcontato', {
-            method: 'POST',
-            body: dataJSON,
-            headers: { 'Content-Type': 'application/json' },
+              method: 'POST',
+              body: dataJSON,
+              headers: { 'Content-Type': 'application/json' },
             });
-
+  
             const result = await response.json();
-
-            if (result.message === 'ok') {
-            fetchContacts();
+            if (result.idChat) {
+                fetchContacts();
             } else {
-            alert('Erro');
+                alert('Erro: ' + result.error || 'Erro inesperado');
             }
         } catch (error) {
             console.error('Erro ao enviar formulário: ', error);
         }
     }, [idUser, fetchContacts]);
-
-  return addContact;
-};
-
-export default useAddContact;
+  
+    return addContact;
+  };
+  export default useAddContact;
+  
