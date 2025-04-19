@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { API_URL } from '../../config';
+
 //@ts-expect-error ignorar img 
 import iconePadrao from '../../assets/img/iconePadrao.svg';
 
@@ -9,7 +11,7 @@ const useUserStatus = (idUser: number | null, active: boolean) => {
         if (!idUser) return;
             const dataJSON = JSON.stringify({ idUser });
         try {
-            const response = await fetch('http://localhost:3000/api/status/statusUsuario', {
+            const response = await fetch(`${API_URL}/api/status/statusUsuario`, {
             method: 'POST',
             body: dataJSON,
             headers: { 'Content-Type': 'application/json' },

@@ -1,104 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import useUserId from '../../hooks/useUserId';
+import React from 'react';
+import useUserStatus from '../../hooks/StatusHooks/useUserStatus';
 import StatusViewer from './StatusViewer';
 
+//@ts-expect-error ignorar img 
+import iconePadrao from '../../assets/img/iconePadrao.svg';
+
 const StatusUser: React.FC = () => {
-  const idUser = useUserId();
-  const [coverStatus, setCoverStatus] = useState<{ imageUrl: string } | null>(null);
-  const [statuses, setStatuses] = useState<any[]>([]);
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const {
+    coverStatus,
+    statuses,
+    isViewerOpen,
+    loading,
+    error,
+    fetchUserStatuses,
+    closeViewer,
+  } = useUserStatus();
 
-  useEffect(() => {
-    if (idUser !== null) {
-      const fetchCoverStatus = async () => {
-        try {
-          const response = await fetch('http://localhost:3000/api/status/statusUsuarioCapa', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ idUser }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (data && data.statusImage) {
-            setCoverStatus({ imageUrl: data.statusImage });
-          }
-        } catch (error) {
-          console.error('Error fetching cover status:', error);
-        }
-      };
-
-      fetchCoverStatus();
-    }
-  }, [idUser]);
-
-  const handleViewStatuses = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/api/status/statusUsuario', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idUser }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (Array.isArray(data.statuses)) {
-        setStatuses(data.statuses);
-        setIsViewerOpen(true); 
-      } else {
-        console.error('Invalid response: "statuses" is not an array.');
-      }
-    } catch (error) {
-      console.error('Error fetching statuses:', error);
-    }
-  };
-
-  const closeViewer = () => {
-    setIsViewerOpen(false);
-    setStatuses([]);
-  };
+  if (loading && !coverStatus) {
+    return <p>Carregando informações do usuário...</p>;
+  }
 
   return (
     <div>
-      {idUser ? (
+      {coverStatus ? (
         <div>
-          {coverStatus ? (
-            <div>
-              <img
-                className='iconeStatusUser'
-                src={coverStatus.imageUrl}
-                alt="Status"
-                style={{ cursor: 'pointer' }}
-                onClick={handleViewStatuses}
-              />
-            </div>
-          ) : (
-            <p>Sem capa de status disponível.</p> //muda aqui para icone do usuario
-          )}
-
-          {isViewerOpen && (
-            <StatusViewer
-              statuses={statuses}
-              selectedContactName="Seus Status"
-              onClose={closeViewer}
-              canDelete={true}
-            />
-          )}
+          <img
+            className="iconeStatusUser"
+            src={coverStatus.imageUrl || iconePadrao}
+            alt="Seu Status"
+            style={{ cursor: 'pointer' }}
+            onClick={fetchUserStatuses}
+          />
         </div>
       ) : (
-        <p>Carregando informações do usuário...</p>
+        <p>Sem capa de status disponível.</p> //colocar o icone do usuario!
+      )}
+
+      {loading && coverStatus && <p>Carregando seus status...</p>}
+      {error && <p className="text-red-500">Erro: {error}</p>}
+
+      {isViewerOpen && (
+        <StatusViewer
+          statuses={statuses}
+          selectedContactName="Seus Status"
+          onClose={closeViewer}
+          canDelete
+        />
       )}
     </div>
   );

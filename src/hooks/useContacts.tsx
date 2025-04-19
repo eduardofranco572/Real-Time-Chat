@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { API_URL } from '../config';
 
 import io from 'socket.io-client';
 const socket = io('http://localhost:3000');
@@ -18,7 +19,7 @@ const useContacts = (idUser: number | string | null) => {
     const dataJSON = JSON.stringify({ idUser });
 
     try {
-      const response = await fetch('http://localhost:3000/api/contacts/PegaContatos', {
+      const response = await fetch(`${API_URL}/api/contacts/PegaContatos`, {
         method: 'POST',
         body: dataJSON,
         headers: {

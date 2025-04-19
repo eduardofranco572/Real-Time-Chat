@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 const useUserId = () => {
   const [idUser, setIdUser] = useState<number | null>(null);
@@ -14,7 +15,7 @@ const useUserId = () => {
 
     const fetchUserId = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/auth/protected', requestOptions);
+        const response = await fetch(`${API_URL}/api/auth/protected`, requestOptions);
         if (response.ok) {
           const data = await response.json();
           setIdUser(data.user);

@@ -1,50 +1,99 @@
 import { useState, useEffect, useCallback } from 'react';
-import useUserId from './useUserId'; 
+import useUserId from './useUserId';
+import { API_URL } from '../config';
 
-interface Status {
+export interface Status {
   id: number;
   idContato: number;
-  idAltor: number;
+  idAutor: number;
   nomeContato: string;
-  imgStatus: string;
-  legenda: string;
+  imgStatus?: string;
+  legenda?: string;
+  [key: string]: any;
 }
 
-const useStatus = () => {
+interface UseStatusResult {
+  statuses: Status[];               
+  refreshStatuses: () => Promise<void>;
+  contactStatuses: Status[];        
+  contactName: string | null;
+  fetchContactStatuses: (idContato: number, nomeContato: string) => Promise<void>;
+  clearContactStatuses: () => void;
+  loading: boolean;
+  error: string | null;
+}
+
+const useStatus = (): UseStatusResult => {
   const [statuses, setStatuses] = useState<Status[]>([]);
+  const [contactStatuses, setContactStatuses] = useState<Status[]>([]);
+  const [contactName, setContactName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const idUser = useUserId();
-  
-  const fetchStatuses = useCallback(async () => {
+
+  // Carrega statuses do usuário
+  const refreshStatuses = useCallback(async () => {
     if (!idUser) return;
-
+    setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`http://localhost:3000/api/status/getStatus/${idUser}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.message === 'ok') {
-        setStatuses(result.statuses || []);
-        console.log('Resposta do servidor:', result.statuses);
+      const res = await fetch(`${API_URL}/api/status/getStatus/${idUser}`);
+      const data = await res.json();
+      if (data.message === 'ok') {
+        setStatuses(data.statuses || []);
       } else {
-        console.error('Erro ao buscar status:', result.error || 'Erro desconhecido');
+        throw new Error(data.error || `Status ${res.status}`);
       }
-    } catch (error) {
-      console.error('Erro ao buscar status:', error);
+    } catch (err) {
+      console.error('useStatus.refreshStatuses:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
     }
   }, [idUser]);
 
-  useEffect(() => {
-    if (idUser) {
-      fetchStatuses();
+  // Carrega statuses de um contato
+  const fetchContactStatuses = useCallback(async (idContato: number, nomeContato: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/status/getUserStatuses/${idContato}`);
+      const data = await res.json();
+      if (res.ok && data.statuses) {
+        setContactStatuses(data.statuses);
+        setContactName(nomeContato);
+      } else {
+        throw new Error(data.error || `Status ${res.status}`);
+      }
+    } catch (err) {
+      console.error('useStatus.fetchContactStatuses:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
     }
-  }, [idUser, fetchStatuses]);
+  }, []);
 
-  return { statuses, fetchStatuses };
+  const clearContactStatuses = useCallback(() => {
+    setContactStatuses([]);
+    setContactName(null);
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    refreshStatuses();
+  }, [refreshStatuses]);
+
+  return {
+    statuses,
+    refreshStatuses,
+    contactStatuses,
+    contactName,
+    fetchContactStatuses,
+    clearContactStatuses,
+    loading,
+    error,
+  };
 };
 
 export default useStatus;

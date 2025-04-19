@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../../config';
 
 interface SendMessageParams {
   idUser: number;
@@ -36,7 +37,7 @@ export const useChatHandlers = () => {
     if (!message.trim()) return;
   
     try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarMensagem', {
+      const response = await fetch(`${API_URL}/api/chat/salvarMensagem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,7 +72,7 @@ export const useChatHandlers = () => {
     formData.append('mediaChat', file);
   
     try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarMensagemMedia', {
+      const response = await fetch(`${API_URL}/api/chat/salvarMensagemMedia`, {
         method: 'POST',
         body: formData,
       });
@@ -100,7 +101,7 @@ export const useChatHandlers = () => {
     formData.append('legenda', caption);
   
     try {
-      const response = await fetch('http://localhost:3000/api/chat/salvarDocument', {
+      const response = await fetch(`${API_URL}/api/chat/salvarDocument`, {
         method: 'POST',
         body: formData,
       });

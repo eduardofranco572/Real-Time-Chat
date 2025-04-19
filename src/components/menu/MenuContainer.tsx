@@ -16,9 +16,11 @@ import useUserId from '../../hooks/useUserId';
 import useUserStatus from '../../hooks/homeHooks/useUserStatus';
 import useSaveStatus from '../../hooks/homeHooks/useSaveStatus';
 import useAddContact from '../../hooks/homeHooks/useAddContact';
-import io from 'socket.io-client';
+import useSelectContact from '../../hooks/homeHooks/useSelectContact';
 
-const socket = io('http://localhost:3000');
+import io from 'socket.io-client';
+import { API_URL } from '../../config';
+const socket = io(`${API_URL}`);
 
 const DadosConta = lazy(() => import('../../components/DadosConta'));
 const StatusList = lazy(() => import('../../components/status/StatusList'));
@@ -30,7 +32,7 @@ interface MenuContainerProps {
 }
 
 interface Contact {
-  id: number;       
+  id: number;
   nomeContato: string;
   imageUrl: string;
 }
@@ -50,6 +52,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const statusImage = useUserStatus(idUser, menuState === 'abaStatus');
   const { saveStatus } = useSaveStatus(idUser);
   const addContact = useAddContact(idUser, fetchContacts);
+  const selectContact = useSelectContact({ idUser, onSelectContact });
 
   const handleBtnClose = useCallback(() => {
     setIsFormVisible(false);
@@ -85,26 +88,8 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
     setUploaderVisible(false);
   };
 
-  const handleSelectContact = useCallback(async (idContato: number) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/contacts/getChatForContact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idUser, idContato }),
-      });
-      const result = await response.json();
-      if (result.idChat) {
-        onSelectContact(result.idChat);
-      } else {
-        console.error('Erro ao obter idChat:', result.error);
-      }
-    } catch (error) {
-      console.error('Erro na requisição do chat:', error);
-    }
-  }, [idUser, onSelectContact]);
-
   const filteredContacts = contacts.filter((c: Contact) =>
-    c.nomeContato.toLowerCase().includes(searchTerm.toLowerCase()) 
+    c.nomeContato.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -216,7 +201,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
             <ContactList 
               contacts={filteredContacts as Contact[]}
-              onSelectContact={handleSelectContact}
+              onSelectContact={selectContact}
             />
           </div>
 

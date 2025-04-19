@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import MessageOption from './MessageOption';
 import EditMessagePopup from './EditMessagePopup';
 import { Message } from '../../hooks/chatHooks/useMessages';
+import useMessageActions from '../../hooks/chatHooks/useMessageActions';
 import ImageModal from './ImageModal';
 import { SiGoogledocs } from 'react-icons/si';
 import { MdDownloading } from 'react-icons/md';
@@ -23,6 +24,9 @@ const MessageList: React.FC<MessageListProps> = ({
   const [editingMessage, setEditingMessage] = useState<{ id: number; text: string } | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null | undefined>(null);
 
+  // **Substitua** handleDeleteMessage e handleSaveMessage pelo hook:
+  const { deleteMessage, editMessage } = useMessageActions(setMessages);
+
   const handleEditMessage = (messageId: number, currentText: string) => {
     setEditingMessage({ id: messageId, text: currentText });
   };
@@ -33,42 +37,12 @@ const MessageList: React.FC<MessageListProps> = ({
       .catch((err) => console.error("Erro ao copiar texto: ", err));
   };
 
-  const handleDeleteMessage = async (messageId: number) => {
-    try {
-      const response = await fetch('http://localhost:3000/api/chat/excluirMensagem', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: messageId }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setMessages(prev => prev.filter(m => m && m.id !== messageId));
-      } else {
-        console.error("Erro ao excluir mensagem:", data.error);
-      }
-    } catch (error) {
-      console.error("Erro na requisição de exclusão:", error);
-    }
-  };
+  const handleDeleteMessage = (id: number) => deleteMessage(id);
 
   const handleSaveMessage = (newText: string) => {
     if (editingMessage) {
-      fetch('http://localhost:3000/api/chat/editarMensagem', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingMessage.id, message: newText })
-      })
-      .then(response => response.json())
-      .then(() => {
-        setMessages(prev =>
-          prev.map(msg =>
-            msg && msg.id === editingMessage.id ? { ...msg, mensagem: newText } : msg
-          )
-        );
-        setEditingMessage(null);
-      })
-      .catch(error => console.error("Erro ao editar mensagem:", error));
+      editMessage(editingMessage.id, newText);
+      setEditingMessage(null);
     }
   };
 

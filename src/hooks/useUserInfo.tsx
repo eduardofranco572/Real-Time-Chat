@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 interface UserInfo {
   nome: string;
@@ -20,7 +21,7 @@ const useUserInfo = (idUser: number | string | null) => {
       const dataJSON = JSON.stringify({ idUser });
 
       try {
-        const response = await fetch('http://localhost:3000/api/contacts/InfoUser', {
+        const response = await fetch(`${API_URL}/api/contacts/InfoUser`, {
           method: 'POST',
           body: dataJSON,
           headers: {

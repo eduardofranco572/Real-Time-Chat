@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_URL } from '../../config';
 
 const useSaveStatus = (idUser: number | null) => {
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ const useSaveStatus = (idUser: number | null) => {
    
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/status/salvarStatus', {
+      const response = await fetch(`${API_URL}/api/status/salvarStatus`, {
         method: 'POST',
         body: formData,
       });

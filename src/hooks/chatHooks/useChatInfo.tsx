@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
 
 export interface ContactInfo {
   nome: string;
@@ -20,7 +21,7 @@ const useChatInfo = (selectedChatId: number | null, idUser: number | null) => {
 
     const fetchChatInfo = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/chat/getChatInfo', {
+        const response = await fetch(`${API_URL}/api/chat/getChatInfo`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idChat: selectedChatId, idUser }),

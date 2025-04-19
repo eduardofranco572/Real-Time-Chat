@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { API_URL } from '../config';
 
 export interface UserData {
   nome: string;
@@ -17,7 +18,7 @@ const useUserData = (idUser: string) => {
 
   const fetchUserData = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/contacts/InfoUser', {
+      const response = await fetch(`${API_URL}/api/contacts/InfoUser`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idUser }),
@@ -60,7 +61,7 @@ const useUserData = (idUser: string) => {
           formData.append('img', imageFile);
         }
 
-        const response = await fetch('http://localhost:3000/api/contacts/UpdateUser', {
+        const response = await fetch(`${API_URL}/api/contacts/UpdateUser`, {
           method: 'POST',
           body: formData,
         });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import { API_URL } from '../../config';
 
 export interface Message {
   id: number;
@@ -14,7 +15,7 @@ export interface Message {
   nomeDocs?: string;
 }
 
-const socket = io('http://localhost:3000');
+const socket = io(`${API_URL}`);
 
 const useMessages = (currentChatId: number | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,7 +25,7 @@ const useMessages = (currentChatId: number | null) => {
     (async () => {
       try {
         const res = await fetch(
-          'http://localhost:3000/api/chat/getMessages',
+          `${API_URL}/api/chat/getMessages`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

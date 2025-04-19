@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { API_URL } from '../../config';
 
 const useAddContact = (idUser: number | null, fetchContacts: () => void) => {
     const addContact = useCallback(async (email: string, nome: string) => {
@@ -8,7 +9,7 @@ const useAddContact = (idUser: number | null, fetchContacts: () => void) => {
         }
         const dataJSON = JSON.stringify({ email, nome, idUser });
         try {
-            const response = await fetch('http://localhost:3000/api/contacts/addcontato', {
+            const response = await fetch(`${API_URL}/api/contacts/addcontato`, {
               method: 'POST',
               body: dataJSON,
               headers: { 'Content-Type': 'application/json' },
