@@ -241,6 +241,7 @@
 .textCont1 p{
     font-size: 12px;
     margin-top: 2px;
+    color: var(--color-subtitle);
 }
 
 .contato{

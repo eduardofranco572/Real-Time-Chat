@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
+import io from 'socket.io-client';
+const socket = io('http://localhost:3000');
+
 interface Contact {
   id: number;
   nomeContato: string;
@@ -36,6 +39,19 @@ const useContacts = (idUser: number | string | null) => {
   useEffect(() => {
     fetchContacts();
   }, [fetchContacts]);
+
+  useEffect(() => {
+    if (!idUser) return;
+
+    const handleNewMsg = (newMessage: any) => {
+      fetchContacts();
+    };
+
+    socket.on('newMessage', handleNewMsg);
+    return () => {
+      socket.off('newMessage', handleNewMsg);
+    };
+  }, [idUser, fetchContacts]);
 
   return { contacts, fetchContacts };
 }

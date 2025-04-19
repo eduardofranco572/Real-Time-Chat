@@ -96,30 +96,56 @@ router.post('/getChatForContact', (req: Request, res: Response) => {
 
 router.post('/PegaContatos', (req: Request, res: Response) => {
   const { idUser } = req.body;
+
+  // Busca contatos + última mensagem + timestamp
   const sql = `
-    SELECT C.nomeContato, C.idContato, U.img 
+    SELECT
+      C.idContato AS id,
+      C.nomeContato,
+      U.img AS img,
+      LM.mensagem,
+      LM.mediaUrl,
+      LM.lastMessageAt
     FROM contatos C
     INNER JOIN usuario U ON U.ID = C.idContato
-    WHERE C.idUser = ?;
+    LEFT JOIN (
+      SELECT
+        cm.idChat,
+        cm.mensagem,
+        cm.mediaUrl,
+        cm.createdAt AS lastMessageAt
+      FROM chat_messages cm
+      INNER JOIN (
+        SELECT idChat, MAX(createdAt) AS createdAt
+        FROM chat_messages
+        GROUP BY idChat
+      ) t ON cm.idChat = t.idChat AND cm.createdAt = t.createdAt
+    ) AS LM ON LM.idChat = (
+      SELECT cp1.idChat FROM chat_participants cp1
+      JOIN chat_participants cp2 ON cp1.idChat = cp2.idChat
+      WHERE cp1.idUser = ? AND cp2.idUser = C.idContato
+      LIMIT 1
+    )
+    WHERE C.idUser = ?
+    ORDER BY LM.lastMessageAt DESC;
   `;
 
-  db.query(sql, [idUser], (err, results) => {
+  db.query(sql, [idUser, idUser], (err, results: any[]) => {
     if (err) {
       console.error('Erro ao buscar dados dos contatos: ', err);
       return res.status(500).send({ error: 'Erro ao buscar dados dos contatos' });
     }
-    
-    if (results.length > 0) {
-      const contatos = results.map((contato: any) => ({
-        id: contato.idContato,
-        nomeContato: contato.nomeContato,
-        imageUrl: contato.img ? `../../upload/imagensUser/${contato.img}` : ''
-      }));
-      
-      res.send({ message: 'ok', contatos });
-    } else {
-      res.send({ message: 'Nenhum contato encontrado para o usuário' });
-    }
+
+    const contatos = results.map(contato => ({
+      id: contato.id,
+      nomeContato: contato.nomeContato,
+      imageUrl: contato.img ? `../../upload/imagensUser/${contato.img}` : '',
+      mensagem: contato.mensagem,
+      mediaUrl: contato.mediaUrl,
+      lastMessageAt: contato.lastMessageAt
+    }));
+
+    res.send({ message: 'ok', contatos });
   });
 });
 
@@ -189,5 +215,7 @@ router.post('/UpdateUser', upload.single('img'), (req: Request, res: Response) =
     res.send({ message: 'Dados atualizados com sucesso' });
   });
 });
+
+
 
 export default router;

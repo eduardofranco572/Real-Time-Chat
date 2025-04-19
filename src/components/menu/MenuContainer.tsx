@@ -1,4 +1,4 @@
-import React, { useState, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useCallback, lazy, Suspense, useEffect } from 'react';
 import { IoSearchOutline, IoClose } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 import { BsPlusCircleDotted } from "react-icons/bs";
@@ -16,6 +16,9 @@ import useUserId from '../../hooks/useUserId';
 import useUserStatus from '../../hooks/homeHooks/useUserStatus';
 import useSaveStatus from '../../hooks/homeHooks/useSaveStatus';
 import useAddContact from '../../hooks/homeHooks/useAddContact';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:3000');
 
 const DadosConta = lazy(() => import('../../components/DadosConta'));
 const StatusList = lazy(() => import('../../components/status/StatusList'));
@@ -39,6 +42,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
   const [isUploaderVisible, setUploaderVisible] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
@@ -98,6 +102,19 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
       console.error('Erro na requisição do chat:', error);
     }
   }, [idUser, onSelectContact]);
+
+  const filteredContacts = contacts.filter((c: Contact) =>
+    c.nomeContato.toLowerCase().includes(searchTerm.toLowerCase()) 
+  );
+
+  useEffect(() => {
+    const handleNewMsg = (newMsg: any) => {
+      fetchContacts();
+    };
+
+    socket.on('newMessage', handleNewMsg);
+    return () => { socket.off('newMessage', handleNewMsg); };
+  }, [fetchContacts]);
 
   return (
     <>
@@ -190,13 +207,15 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
                   type="text"
                   name="filterContatos"
                   placeholder="Pesquisar"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <ContactList
-              contacts={contacts as Contact[]}
+            <ContactList 
+              contacts={filteredContacts as Contact[]}
               onSelectContact={handleSelectContact}
             />
           </div>
