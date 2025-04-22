@@ -72,8 +72,6 @@ const uploadDocs = multer({
 const isLink = (text: string): boolean =>
   text.startsWith('http://') || text.startsWith('https://') || text.includes('.com');
 
-// --- ENDPOINTS ---
-
 router.post('/salvarMensagem', (req: Request, res: Response) => {
   const { idChat, idUser, message, replyTo } = req.body;
   if (!idChat || !idUser || !message) {
@@ -93,25 +91,30 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
       return res.status(500).send({ error: 'Erro ao salvar a mensagem' });
     }
 
-    const newMessageBase = {
-      id: result.insertId,
-      idChat,
-      idUser,
-      mensagem: message,
-      link: linkFlag,
-      replyTo: replyValue,
-      createdAt: new Date().toISOString()
-    };
-
-    const sqlNome = `
-      SELECT nome
+    const sqlUser = `
+      SELECT nome, img AS imageFilename
       FROM usuario
       WHERE id = ?
     `;
-
-    db.query(sqlNome, [idUser], (err2, rows: any[]) => {
+    db.query(sqlUser, [idUser], (err2, rows: any[]) => {
       const nomeContato = !err2 && rows.length > 0 ? rows[0].nome : 'Desconhecido';
-      const newMessage = { ...newMessageBase, nomeContato };
+      const filename = rows[0]?.imageFilename;
+      const imageUrl = filename
+        ? `/upload/imagensUser/${filename}`
+        : '/upload/imagensUser/default.png';
+
+      const newMessage = {
+        id: result.insertId,
+        idChat,
+        idUser,
+        mensagem: message,
+        link: linkFlag,
+        replyTo: replyValue,
+        createdAt: new Date().toISOString(),
+        nomeContato,
+        imageUrl
+      };
+
       const io = req.app.get('io');
       io.emit('newMessage', newMessage);
       res.send({ message: 'Mensagem enviada com sucesso', id: result.insertId });
@@ -122,7 +125,10 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
 router.post('/getMessages', (req, res) => {
   const { idChat } = req.body;
   const sql = `
-    SELECT M.*, U.nome AS nomeContato
+    SELECT 
+      M.*,
+      U.nome AS nomeContato,
+      U.img AS imageFilename
     FROM chat_messages M
     JOIN usuario U ON U.id = M.idUser
     WHERE M.idChat = ?
@@ -131,7 +137,15 @@ router.post('/getMessages', (req, res) => {
 
   db.query(sql, [idChat], (err, results: any[]) => {
     if (err) return res.status(500).send({ error: 'Erro ao buscar mensagens' });
-    res.send({ messages: results });
+
+    const messages = results.map(row => ({
+      ...row,
+      imageUrl: row.imageFilename
+        ? `/upload/imagensUser/${row.imageFilename}`
+        : '/upload/imagensUser/default.png'
+    }));
+
+    res.send({ messages });
   });
 });
 
@@ -225,7 +239,6 @@ router.delete('/excluirMensagem', (req: Request, res: Response) => {
     });
   });
 });
-
 
 router.put('/editarMensagem', (req: Request, res: Response) => {
   const { id, message } = req.body;
@@ -329,5 +342,40 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
     });
   });
 });
+
+router.post('/getGroupInfo', (req, res) => {
+  const { idChat } = req.body;
+  if (!idChat) return res.status(400).send({ error: 'idChat é obrigatório' });
+
+  const sql = `
+    SELECT nomeGrupo, imgGrupo
+    FROM grupos
+    WHERE idChat = ?
+  `;
+  db.query(sql, [idChat], (err, results: any[]) => {
+    if (err) {
+      console.error('Erro ao buscar grupo:', err);
+      return res.status(500).send({ error: err.message });
+    }
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'Grupo não encontrado' });
+    }
+
+    const { nomeGrupo, imgGrupo } = results[0];
+    const imageUrl = imgGrupo
+      ? `/upload/grupo/${imgGrupo}`
+      : '/upload/grupo/default.png';
+
+    return res.send({
+      message: 'ok',
+      nome: nomeGrupo,
+      email: '',
+      descricao: '',
+      imageUrl,
+      id: idChat,
+    });
+  });
+});
+
 
 export default router;

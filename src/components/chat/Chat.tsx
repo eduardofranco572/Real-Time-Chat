@@ -13,13 +13,14 @@ import useMessages from '../../hooks/chatHooks/useMessages';
 import { useChatHandlers } from '../../hooks/chatHooks/useChatHandlers';
 
 interface ChatProps {
-  selectedChatId: number | null;
+  selectedChatId: number;
   showContactDetails: boolean;
-  setShowContactDetails: (visible: boolean) => void;
-  idUser: number | null; 
+  setShowContactDetails: React.Dispatch<React.SetStateAction<boolean>>;
+  idUser: number | null;
+  selectedChatIsGroup: boolean; 
 }
 
-const Chat: React.FC<ChatProps> = ({ selectedChatId, showContactDetails, setShowContactDetails, idUser }) => {
+const Chat: React.FC<ChatProps> = ({ selectedChatId, showContactDetails, setShowContactDetails, idUser, selectedChatIsGroup}) => {
   if (idUser == null) {
     return <div>Carregando usuário…</div>;
   }
@@ -33,7 +34,8 @@ const Chat: React.FC<ChatProps> = ({ selectedChatId, showContactDetails, setShow
   const [showMediaUploader, setShowMediaUploader] = useState(false);
   const [showDocsUploader, setShowDocsUploader] = useState(false);
 
-  const chatInfo = useChatInfo(selectedChatId, idUser);
+  const chatInfo = useChatInfo(selectedChatId, idUser, selectedChatIsGroup);
+  
   const { messages, setMessages } = useMessages(selectedChatId);
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
 
@@ -88,6 +90,7 @@ const Chat: React.FC<ChatProps> = ({ selectedChatId, showContactDetails, setShow
 
         <section className='Chat'>
           <MessageList
+            isGroup={selectedChatIsGroup}
             currentUserId={idUser}
             messages={messages}
             setMessages={setMessages}

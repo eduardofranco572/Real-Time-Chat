@@ -2,21 +2,19 @@ import React, { useState, useCallback, lazy, Suspense, useEffect, FormEvent } fr
 import { IoSearchOutline, IoClose } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 import { BsPlusCircleDotted } from "react-icons/bs";
-
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 import UserInfo from '../../components/UserInfo';
 import ContactList from '../../components/ContactList';
 import ContactForm from '../../components/ContactForm';
-
 import useUserInfo from '../../hooks/useUserInfo';
 import useContacts from '../../hooks/useContacts';
 import useUserId from '../../hooks/useUserId';
 import useUserStatus from '../../hooks/homeHooks/useUserStatus';
 import useSaveStatus from '../../hooks/homeHooks/useSaveStatus';
 import useAddContact from '../../hooks/homeHooks/useAddContact';
-import useSelectContact from '../../hooks/homeHooks/useSelectContact';
+import useAddGroup from '../../hooks/homeHooks/useAddGroup';
 
 import io from 'socket.io-client';
 import { API_URL } from '../../config';
@@ -28,13 +26,7 @@ const StatusUser = lazy(() => import('../../components/status/StatusUser'));
 const StatusUploader = lazy(() => import('../status/StatusUploader'));
 
 interface MenuContainerProps {
-  onSelectContact: (chatId: number) => void;
-}
-
-interface Contact {
-  id: number;
-  nomeContato: string;
-  imageUrl: string;
+  onSelectContact: (chatId: number, isGroup: boolean) => void;
 }
 
 const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
@@ -49,11 +41,11 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
   const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
-  const { contacts, fetchContacts } = useContacts(idUser);
+  const { items, fetchContacts } = useContacts(idUser);
   const statusImage = useUserStatus(idUser, menuState === 'abaStatus');
   const { saveStatus } = useSaveStatus(idUser);
   const addContact = useAddContact(idUser, fetchContacts);
-  const selectContact = useSelectContact({ idUser, onSelectContact });
+  const { addGroup } = useAddGroup(idUser);
 
   const handleBtnClose = useCallback(() => {
     setIsFormVisible(false);
@@ -74,10 +66,9 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   );
 
   const handleSubmitGroup = useCallback(
-    async (e: FormEvent<HTMLFormElement>, imageFile?: File) => {
+    async (e: FormEvent<HTMLFormElement>, imageFile?: File, participantIds?: number[]) => {
       e.preventDefault();
-      // TODO: chamar hook de criação de grupo passando groupName e imageFile
-      console.log('Criar grupo:', groupName, imageFile);
+      await addGroup(groupName, imageFile, participantIds || []);
       setGroupName('');
       setIsFormVisible(false);
     },
@@ -98,8 +89,8 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
     setUploaderVisible(false);
   };
 
-  const filteredContacts = contacts.filter(c =>
-    c.nomeContato.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = items.filter(i =>
+    i.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -213,8 +204,8 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
             </div>
 
             <ContactList
-              contacts={filteredContacts}
-              onSelectContact={selectContact}
+              items={filteredItems}
+              onOpenChat={(chatId, isGroup) => onSelectContact(chatId, isGroup)}
             />
           </div>
 

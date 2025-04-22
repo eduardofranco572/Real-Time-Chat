@@ -1,60 +1,45 @@
-import { useState, useEffect, useCallback } from 'react';
-import { API_URL } from '../config';
+import { useState, useEffect, useCallback } from 'react'
+import io from 'socket.io-client'
+import { API_URL } from '../config'
+import { ChatItem } from '../components/ContactList'
 
-import io from 'socket.io-client';
-const socket = io('http://localhost:3000');
-
-interface Contact {
-  id: number;
-  nomeContato: string;
-  imageUrl: string;
-}
+const socket = io(API_URL)
 
 const useContacts = (idUser: number | string | null) => {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [items, setItems] = useState<ChatItem[]>([])
 
   const fetchContacts = useCallback(async () => {
-    if (!idUser) return;
-
-    const dataJSON = JSON.stringify({ idUser });
+    if (!idUser) return
 
     try {
       const response = await fetch(`${API_URL}/api/contacts/PegaContatos`, {
         method: 'POST',
-        body: dataJSON,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.message === 'ok') {
-        setContacts(result.contatos || []);
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idUser }),
+      })
+      const { message, lista } = await response.json()
+      if (message === 'ok') {
+        setItems(lista)
       }
     } catch (error) {
-      console.error('Erro ao buscar contatos: ', error);
+      console.error('Erro ao buscar contatos e grupos:', error)
     }
-  }, [idUser]);
+  }, [idUser])
 
   useEffect(() => {
-    fetchContacts();
-  }, [fetchContacts]);
+    fetchContacts()
+  }, [fetchContacts])
 
   useEffect(() => {
-    if (!idUser) return;
-
-    const handleNewMsg = (newMessage: any) => {
-      fetchContacts();
-    };
-
-    socket.on('newMessage', handleNewMsg);
+    if (!idUser) return
+    const handleNew = () => fetchContacts()
+    socket.on('newMessage', handleNew)
     return () => {
-      socket.off('newMessage', handleNewMsg);
-    };
-  }, [idUser, fetchContacts]);
+      socket.off('newMessage', handleNew)
+    }
+  }, [idUser, fetchContacts])
 
-  return { contacts, fetchContacts };
+  return { items, fetchContacts }
 }
 
-export default useContacts;
+export default useContacts

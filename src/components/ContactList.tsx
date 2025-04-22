@@ -1,48 +1,55 @@
 import React from 'react';
-//@ts-expect-error ignorar img 
+// @ts-expect-error ignorar img
 import iconePadrao from '../assets/img/iconePadrao.svg';
 
-interface ContactListProps {
-  contacts: {
-    id: number;
-    nomeContato: string;
-    imageUrl: string;
-    mensagem?: string;
-    mediaUrl?: string;
-    lastMessageAt?: string;
-  }[];
-  onSelectContact: (id: number) => void;
+export interface ChatItem {
+  id: number;
+  nome: string;
+  imageUrl: string;
+  mensagem?: string;
+  mediaUrl?: string;
+  lastMessageAt?: string;
+  chatId: number;
+  isGroup: boolean;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, onSelectContact }) => {
-  return (
-    <div className='contatos'>
-      <div className='cont1'>
-        {contacts.sort((a, b) => {
-          const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-          const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-          return tb - ta;
-        }).map((contato) => (
-          <div className='contato' key={contato.id} onClick={() => onSelectContact(contato.id)}>
-            <div className='elementsCont1'>
-              <img src={contato.imageUrl || iconePadrao} alt={contato.nomeContato} />
-              <div className='textCont1'>
-                <h1>{contato.nomeContato}</h1>
-                <p>
-                  {contato.mensagem
-                    ? contato.mensagem
-                    : contato.mediaUrl
-                      ? 'mídia enviada'
-                      : ''
-                  }
-                </p>
-              </div>
+interface ContactListProps {
+  items: ChatItem[];
+  onOpenChat: (chatId: number, isGroup: boolean) => void;  
+}
+
+const ContactList: React.FC<ContactListProps> = ({ items, onOpenChat }) => (
+  <div className="contatos">
+    {items
+      .sort((a, b) => {
+        const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return tb - ta;
+      })
+      .map(item => (
+        <div
+          className="contato"
+          key={`${item.isGroup ? 'group' : 'user'}-${item.id}`}
+          onClick={() => onOpenChat(item.chatId, item.isGroup)}
+        >
+          <div className="elementsCont1">
+            <img src={item.imageUrl || iconePadrao} alt={item.nome} />
+            <div className="textCont1">
+              <h1>{item.nome}</h1>
+              <p>
+                {item.mensagem
+                  ? item.mensagem
+                  : item.mediaUrl
+                    ? 'mídia enviada'
+                    : ''
+                }
+              </p>
             </div>
+            {item.isGroup}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+        </div>
+      ))}
+  </div>
+);
 
 export default ContactList;

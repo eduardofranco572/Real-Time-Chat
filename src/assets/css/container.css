@@ -198,7 +198,7 @@
     overflow-y: scroll;
     overflow-x: hidden;
     height: 100%;
-    padding: 1rem 3rem 1rem 3rem;
+    padding: 1rem 2rem 1rem 2rem;
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
 }
@@ -233,16 +233,61 @@
     max-width: 70%;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .my-message {
-    background-color: #3d3d3d; 
+    background-color: #3d3d3d;
     align-self: flex-end;
+    border-radius: 12px 0px 12px 12px;
+}
+
+.my-message::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    transform: translateY(50%) rotate(91deg);
+    right: -8px;
+    width: 0px;
+    height: 0;
+    border: 8px solid transparent;
+    border-radius: 5px;
+    border-left-color: #3d3d3d;
 }
 
 .contact-message {
     background-color: #181818;
     align-self: flex-start;
+    border-radius: 0px 12px 12px 12px;
+}
+
+.contact-message::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    transform: translateY(50%) rotate(270deg);
+    left: -7px;
+    width: 0;
+    height: 0;
+    border-radius: 5px;
+    border: 8px solid transparent;
+    border-right-color: #181818;
+}
+
+.my-message.continued::after {
+    display: none;
+}
+
+.contact-message.continued::before {
+    display: none;
+}
+
+.contact-message.continued {
+    margin-left: 32px;
+}
+
+.my-message.continued {
+    margin-right: 32px; 
 }
 
 .horaMensagem{
@@ -604,5 +649,35 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.message-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 6px;
+}
+
+.sender-name {
+    font-weight: bold;
+    font-size: 0.875rem;
+    margin-bottom: 5px;
+}
+
+.message-wrapper {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.message-wrapper.my {
+    justify-content: flex-end;
 }
 

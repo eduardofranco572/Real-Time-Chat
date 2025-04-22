@@ -94,59 +94,110 @@ router.post('/getChatForContact', (req: Request, res: Response) => {
   });
 });
 
-router.post('/PegaContatos', (req: Request, res: Response) => {
+router.post('/PegaContatos', (req, res) => {
   const { idUser } = req.body;
+  if (!idUser) return res.status(400).json({ error: 'idUser é obrigatório' });
 
-  // Busca contatos + última mensagem + timestamp
   const sql = `
+    -- 1) contatos individuais
     SELECT
       C.idContato AS id,
-      C.nomeContato,
+      C.nomeContato AS nome,
       U.img AS img,
       LM.mensagem,
       LM.mediaUrl,
-      LM.lastMessageAt
+      LM.lastMessageAt,
+      (
+        SELECT cp1.idChat
+        FROM chat_participants cp1
+        JOIN chat_participants cp2 
+          ON cp1.idChat = cp2.idChat
+        WHERE cp1.idUser = ? 
+          AND cp2.idUser = C.idContato
+        LIMIT 1
+      ) AS chatId,
+      FALSE AS isGroup
     FROM contatos C
-    INNER JOIN usuario U ON U.ID = C.idContato
+    INNER JOIN usuario U 
+      ON U.ID = C.idContato
     LEFT JOIN (
-      SELECT
-        cm.idChat,
-        cm.mensagem,
-        cm.mediaUrl,
-        cm.createdAt AS lastMessageAt
+      SELECT cm.idChat, cm.mensagem, cm.mediaUrl, cm.createdAt AS lastMessageAt
       FROM chat_messages cm
       INNER JOIN (
         SELECT idChat, MAX(createdAt) AS createdAt
         FROM chat_messages
         GROUP BY idChat
-      ) t ON cm.idChat = t.idChat AND cm.createdAt = t.createdAt
-    ) AS LM ON LM.idChat = (
-      SELECT cp1.idChat FROM chat_participants cp1
-      JOIN chat_participants cp2 ON cp1.idChat = cp2.idChat
-      WHERE cp1.idUser = ? AND cp2.idUser = C.idContato
-      LIMIT 1
-    )
+      ) t 
+        ON cm.idChat = t.idChat 
+       AND cm.createdAt = t.createdAt
+    ) AS LM 
+      ON LM.idChat = (
+        SELECT cp1.idChat
+        FROM chat_participants cp1
+        JOIN chat_participants cp2 
+          ON cp1.idChat = cp2.idChat
+        WHERE cp1.idUser = ? 
+          AND cp2.idUser = C.idContato
+        LIMIT 1
+      )
     WHERE C.idUser = ?
-    ORDER BY LM.lastMessageAt DESC;
+
+    UNION ALL
+
+    -- Grupos
+    SELECT
+      G.id AS id,
+      G.nomeGrupo AS nome,
+      G.imgGrupo AS img,
+      LM2.mensagem,
+      LM2.mediaUrl,
+      LM2.lastMessageAt,
+      G.idChat AS chatId,
+      TRUE AS isGroup
+    FROM grupos G
+    INNER JOIN chat_participants cp
+      ON cp.idChat = G.idChat 
+      AND cp.idUser = ?
+    LEFT JOIN (
+      SELECT cm.idChat, cm.mensagem, cm.mediaUrl, cm.createdAt AS lastMessageAt
+      FROM chat_messages cm
+      INNER JOIN (
+        SELECT idChat, MAX(createdAt) AS createdAt
+        FROM chat_messages
+        GROUP BY idChat
+      ) t 
+        ON cm.idChat = t.idChat 
+       AND cm.createdAt = t.createdAt
+    ) AS LM2 ON LM2.idChat = G.idChat
+
+    ORDER BY lastMessageAt DESC;
   `;
 
-  db.query(sql, [idUser, idUser], (err, results: any[]) => {
-    if (err) {
-      console.error('Erro ao buscar dados dos contatos: ', err);
-      return res.status(500).send({ error: 'Erro ao buscar dados dos contatos' });
+  db.query(sql,
+
+    [idUser, idUser, idUser, idUser, idUser],
+    (err, results: any[]) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Erro no servidor' });
+      }
+
+      const lista = results.map(item => ({
+        id: item.id,
+        nome: item.nome,
+        imageUrl: item.img
+                  ? `../../upload/${item.isGroup ? 'grupo' : 'imagensUser'}/${item.img}`
+                  : '',
+        mensagem: item.mensagem,
+        mediaUrl: item.mediaUrl,
+        lastMessageAt: item.lastMessageAt,
+        chatId: item.chatId,
+        isGroup: !!item.isGroup
+      }));
+
+      res.json({ message: 'ok', lista });
     }
-
-    const contatos = results.map(contato => ({
-      id: contato.id,
-      nomeContato: contato.nomeContato,
-      imageUrl: contato.img ? `../../upload/imagensUser/${contato.img}` : '',
-      mensagem: contato.mensagem,
-      mediaUrl: contato.mediaUrl,
-      lastMessageAt: contato.lastMessageAt
-    }));
-
-    res.send({ message: 'ok', contatos });
-  });
+  );
 });
 
 router.post('/InfoUser', (req: Request, res: Response) => {

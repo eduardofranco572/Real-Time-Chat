@@ -14,10 +14,12 @@ import iconeChat from '../assets/img/chat2.svg';
 const Home: React.FC = () => {
   const idUser = useUserId();
   const [selectedChatId, setSelectedChatId] = React.useState<number | null>(null);
+  const [selectedChatIsGroup, setSelectedChatIsGroup] = React.useState<boolean>(false);
   const [showContactDetails, setShowContactDetails] = React.useState(false);
 
-  const handleSelectContact = (idChat: number) => {
+  const handleSelectContact = (idChat: number, isGroup: boolean) => {
     setSelectedChatId(idChat);
+    setSelectedChatIsGroup(isGroup);
     setShowContactDetails(false);
   };
 
@@ -30,6 +32,7 @@ const Home: React.FC = () => {
         {selectedChatId ? (
           <Chat 
             selectedChatId={selectedChatId}
+            selectedChatIsGroup={selectedChatIsGroup} 
             showContactDetails={showContactDetails}
             setShowContactDetails={setShowContactDetails}
             idUser={idUser}

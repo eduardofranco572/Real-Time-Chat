@@ -13,7 +13,10 @@ export interface Message {
   nomeContato?: string;
   mediaUrl?: string;
   nomeDocs?: string;
+  imageUrl?: string;
 }
+
+export type SetMessages = React.Dispatch<React.SetStateAction<Message[]>>;
 
 const socket = io(`${API_URL}`);
 
