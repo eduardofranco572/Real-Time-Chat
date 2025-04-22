@@ -1,4 +1,4 @@
-import React, { useState, useCallback, lazy, Suspense, useEffect } from 'react';
+import React, { useState, useCallback, lazy, Suspense, useEffect, FormEvent } from 'react';
 import { IoSearchOutline, IoClose } from "react-icons/io5";
 import { IoIosAddCircle } from "react-icons/io";
 import { BsPlusCircleDotted } from "react-icons/bs";
@@ -41,6 +41,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
+  const [groupName, setGroupName] = useState('');
   const [menuState, setMenuState] = useState<'principalMenu' | 'abaStatus' | 'dadosConta'>('principalMenu');
   const [isUploaderVisible, setUploaderVisible] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -57,48 +58,58 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const handleBtnClose = useCallback(() => {
     setIsFormVisible(false);
   }, []);
-
   const handleBtnOpen = useCallback(() => {
     setIsFormVisible(true);
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    await addContact(email, nome);
-    setEmail('');
-    setNome('');
-  }, [email, nome, addContact]);
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      await addContact(email, nome);
+      setEmail('');
+      setNome('');
+      setIsFormVisible(false);
+    },
+    [email, nome, addContact]
+  );
+
+  const handleSubmitGroup = useCallback(
+    async (e: FormEvent<HTMLFormElement>, imageFile?: File) => {
+      e.preventDefault();
+      // TODO: chamar hook de criação de grupo passando groupName e imageFile
+      console.log('Criar grupo:', groupName, imageFile);
+      setGroupName('');
+      setIsFormVisible(false);
+    },
+    [groupName]
+  );
 
   const handleAddStatusClick = () => {
     const inputElement = document.getElementById('status-input') as HTMLInputElement;
-    if (inputElement) {
-      inputElement.click();
-    } else {
-      console.error("Elemento de entrada de arquivo não encontrado!");
-    }
+    inputElement?.click();
   };
 
   const handleImageUpload = (file: File) => {
     setUploadedImage(file);
     setUploaderVisible(true);
   };
-
   const handleSaveStatus = async (file: File, caption: string) => {
     await saveStatus(file, caption);
     setUploaderVisible(false);
   };
 
-  const filteredContacts = contacts.filter((c: Contact) =>
+  const filteredContacts = contacts.filter(c =>
     c.nomeContato.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
-    const handleNewMsg = (newMsg: any) => {
+    const handleNewMsg = () => {
       fetchContacts();
     };
-
     socket.on('newMessage', handleNewMsg);
-    return () => { socket.off('newMessage', handleNewMsg); };
+    return () => {
+      socket.off('newMessage', handleNewMsg);
+    };
   }, [fetchContacts]);
 
   return (
@@ -106,11 +117,14 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
       {isFormVisible && (
         <ContactForm
           onClose={handleBtnClose}
-          onSubmit={handleSubmit}
+          onSubmitContact={handleSubmit}
+          onSubmitGroup={handleSubmitGroup}
           email={email}
           setEmail={setEmail}
           nome={nome}
           setNome={setNome}
+          groupName={groupName}
+          setGroupName={setGroupName}
         />
       )}
 
@@ -125,7 +139,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
       )}
 
       {menuState === 'abaStatus' && (
-        <Suspense fallback={<Skeleton height={200} />}>
+         <Suspense fallback={<Skeleton height={200} />}>
           <div className="abaStatus">
             <div className="cabecalhoStatus">
               <h1>Status</h1>
@@ -190,17 +204,16 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
                 <input
                   className="inputSearch"
                   type="text"
-                  name="filterContatos"
                   placeholder="Pesquisar"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <ContactList 
-              contacts={filteredContacts as Contact[]}
+            <ContactList
+              contacts={filteredContacts}
               onSelectContact={selectContact}
             />
           </div>
@@ -215,3 +228,4 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 };
 
 export default MenuContainer;
+

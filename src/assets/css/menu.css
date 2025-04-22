@@ -109,12 +109,11 @@
 .itensPopUpC{
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     width: 45rem;
     height: 38rem;
     border-radius: 1rem;
-    background-color: rgb(0 0 0 / 50%);
+    background-color: var(--color-container);
     z-index: 2;
     border: 1px solid rgba(255, 255, 255, .25);
     backdrop-filter: blur(5px);
@@ -132,7 +131,15 @@
     width: 100%;
 }
 
-.btnClose button{
+.btnCloseAdd{
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    width: 100%;
+}
+
+.btnClose button,
+.btnCloseAdd button{
     background-color: transparent;
     border: none;
     cursor: pointer;
@@ -140,12 +147,14 @@
     margin: 1rem;
 }
 
-.btnClose button:hover{
+.btnClose button:hover,
+.btnCloseAdd button:hover{
     transition: 0.2s;
     transform: scale(1.2);
 }
 
-.btnClose button svg{
+.btnClose button svg,
+.btnCloseAdd button svg{
     font-size: 26px;
 }
 
@@ -155,7 +164,8 @@
 }
 
 .infosHPUCad{
-    margin-left: 2rem;
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
 .barraPp{
@@ -172,7 +182,8 @@
     max-width: 25rem;
 }
 
-.btnAddContato input {
+.btnAddContato input,
+.btnAddContato button{
     background: transparent;
     border: 2px solid white;
     border-radius: 0.5rem;
@@ -182,7 +193,8 @@
     cursor: pointer;
 }
 
-.btnAddContato input:hover{
+.btnAddContato input:hover,
+.btnAddContato button:hover{
     transition: 0.2s;
     transform: scale(1.1);
 }
@@ -191,8 +203,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100%;
+}
+
+.containerAdd{
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%
 }
 
 .elementosFormPp{
@@ -206,6 +225,10 @@
     border: none;
     color: black;
     margin-top: 5px;
+}
+
+.inputFPError{
+    border: 2px solid red !important;
 }
 
 .titlesInput{
@@ -372,5 +395,122 @@
     height: 100%;
     display: flex;
     justify-content: center;
+    align-items: c;
     position: fixed;
+    z-index: 9999;
+}
+
+.optionsAdd{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.alinhaOptionsAdd{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 4rem;
+}
+
+.alinhaOptionsAdd button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 11rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin: 1rem;
+}
+
+.alinhaOptionsAdd button:hover{
+    transition: 0.2s;
+    transform: scale(1.1);
+}
+
+.alinhaOptionsAdd button svg{
+    margin-right: 1rem;
+    font-size: 22px;
+}
+
+.imgPadraoGroup{
+    width: 6rem !important;
+    height: 6rem !important;
+}
+
+/* biblioteca select */
+
+.my-select{
+    margin-top: 0.5rem;
+}
+
+.my-select__control {
+    background: #292929 !important;
+    border: 1px solid white !important;
+    box-shadow: none !important;
+}
+.my-select__control:hover {
+    border-color: white !important;
+}
+
+.my-select__menu {
+    background: #292929 !important;
+}
+
+.my-select__option {
+    background: #292929 !important;
+    color: white !important;
+    cursor: pointer !important;
+}
+.my-select__option--is-focused {
+    background: #3a3a3a !important;
+}
+.my-select__option--is-selected {
+    background: #444 !important;
+}
+
+.my-select__placeholder,
+.my-select__single-value {
+    color: #aaa !important;
+}
+.my-select__input input {
+    color: white !important;
+}
+
+.my-select__indicator-separator {
+    background-color: white !important;
+}
+.my-select__dropdown-indicator {
+    color: white !important;
+}
+.my-select__dropdown-indicator:hover {
+    color: #ddd !important;
+}
+
+.my-select__multi-value {
+    background: #3a3a3a !important;
+}
+.my-select__multi-value__label {
+    color: white !important;
+}
+.my-select__multi-value__remove {
+    color: white !important;
+}
+.my-select__multi-value__remove:hover {
+    background: #555 !important;
+    color: white !important;
+}
+.my-select__control {
+    width: 23rem;
+}
+
+.my-select__menu {
+    width: 23rem;
 }

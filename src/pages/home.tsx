@@ -1,5 +1,4 @@
 import '../assets/css/global.css';
-import '../assets/css/home.css';
 import '../assets/css/menu.css';
 import '../assets/css/container.css';
 import '../assets/css/status.css';

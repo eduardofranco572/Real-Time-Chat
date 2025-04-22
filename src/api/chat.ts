@@ -142,13 +142,23 @@ router.post('/getChatInfo', (req: Request, res: Response) => {
   }
 
   const sql = `
-    SELECT U.nome, U.email, U.descricao, U.img AS imageFilename, cp.idUser AS contatoId
+    SELECT 
+      U.nome AS nomeUsuario,
+      U.email,
+      U.descricao,
+      U.img  AS imageFilename,
+      cp.idUser AS contatoId,
+      c.nomeContato AS apelidoContato
     FROM chat_participants cp
     JOIN chat_participants cp2
-      ON cp2.idChat = cp.idChat AND cp2.idUser = ?
+      ON cp2.idChat = cp.idChat
+     AND cp2.idUser = ?
     JOIN usuario U
       ON U.id = cp.idUser
-    WHERE cp.idChat = ? 
+    LEFT JOIN contatos c
+      ON c.idUser = cp2.idUser    
+     AND c.idContato = cp.idUser  
+    WHERE cp.idChat = ?
       AND cp.idUser != ?
     LIMIT 1
   `;
@@ -158,7 +168,6 @@ router.post('/getChatInfo', (req: Request, res: Response) => {
       console.error('Erro ao buscar info do chat:', err);
       return res.status(500).send({ error: 'Erro ao buscar info do chat' });
     }
-
     if (results.length === 0) {
       return res.status(404).send({ error: 'Chat não encontrado ou sem outro participante' });
     }
@@ -166,11 +175,13 @@ router.post('/getChatInfo', (req: Request, res: Response) => {
     const row = results[0];
     res.send({
       message: 'ok',
-      nome: row.nome,
+      nome: row.apelidoContato || row.nomeUsuario,
       email: row.email,
       descricao: row.descricao,
-      imageUrl: row.imageFilename ? `/upload/imagensUser/${row.imageFilename}` : '',
-      nomeContato: row.nome,
+      imageUrl: row.imageFilename 
+        ? `/upload/imagensUser/${row.imageFilename}` 
+        : '',
+      nomeContato: row.apelidoContato,
       id: row.contatoId,
     });
   });
