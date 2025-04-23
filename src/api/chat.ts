@@ -346,33 +346,59 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
 router.post('/getGroupInfo', (req, res) => {
   const { idChat } = req.body;
   if (!idChat) return res.status(400).send({ error: 'idChat é obrigatório' });
-
-  const sql = `
-    SELECT nomeGrupo, imgGrupo
+  
+  const sqlGroup = `
+    SELECT nomeGrupo   AS nome,
+           imgGrupo    AS imageUrl,
+           descricaoGrupo AS descricao
     FROM grupos
     WHERE idChat = ?
+    LIMIT 1
   `;
-  db.query(sql, [idChat], (err, results: any[]) => {
+
+  const sqlMembers = `
+    SELECT u.ID        AS id,
+           u.nome      AS nome,
+           u.img       AS imageUrl
+    FROM chat_participants cp
+    JOIN usuario u
+      ON cp.idUser = u.ID
+    WHERE cp.idChat = ?
+  `;
+
+  db.query(sqlGroup, [idChat], (err, groupResults: any[]) => {
     if (err) {
       console.error('Erro ao buscar grupo:', err);
       return res.status(500).send({ error: err.message });
     }
-    if (results.length === 0) {
+    if (groupResults.length === 0) {
       return res.status(404).send({ error: 'Grupo não encontrado' });
     }
 
-    const { nomeGrupo, imgGrupo } = results[0];
-    const imageUrl = imgGrupo
-      ? `/upload/grupo/${imgGrupo}`
+    const group = groupResults[0];
+    group.imageUrl = group.imageUrl
+      ? `/upload/grupo/${group.imageUrl}`
       : '/upload/grupo/default.png';
 
-    return res.send({
-      message: 'ok',
-      nome: nomeGrupo,
-      email: '',
-      descricao: '',
-      imageUrl,
-      id: idChat,
+    db.query(sqlMembers, [idChat], (err2, membersResults: any[]) => {
+      if (err2) {
+        console.error('Erro ao buscar membros do grupo:', err2);
+        return res.status(500).send({ error: err2.message });
+      }
+
+      const members = membersResults.map(m => ({
+        id: m.id,
+        nome: m.nome,
+        imageUrl: m.imageUrl
+          ? `/upload/imagensUser/${m.imageUrl}`
+          : '/upload/imagensUser/default.png',
+      }));
+
+      res.send({
+        message: 'ok',
+        group,
+        members,
+      });
     });
   });
 });

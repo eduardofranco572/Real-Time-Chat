@@ -267,6 +267,4 @@ router.post('/UpdateUser', upload.single('img'), (req: Request, res: Response) =
   });
 });
 
-
-
 export default router;

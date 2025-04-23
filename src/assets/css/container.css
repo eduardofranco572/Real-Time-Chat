@@ -171,6 +171,12 @@
     width: 100%;
 }
 
+.detalhesUser{
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .infoFC svg{
     width: 1.5rem;
     height: 1.5rem;
@@ -194,7 +200,8 @@
     align-items: center;
 } 
 
-.Chat {
+.Chat, 
+.chat--group {
     overflow-y: scroll;
     overflow-x: hidden;
     height: 100%;
@@ -203,15 +210,21 @@
     scrollbar-color: #ccc transparent;
 }
 
-.Chat::-webkit-scrollbar {
+.Chat::-webkit-scrollbar,
+.chat--group::-webkit-scrollbar
+.DadosContato::-webkit-scrollbar {
     width: 8px;
 }
 
-.Chat::-webkit-scrollbar-track {
+.Chat::-webkit-scrollbar-track
+.chat--group::-webkit-scrollbar-track,
+.DadosContato::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.Chat::-webkit-scrollbar-thumb {
+.Chat::-webkit-scrollbar-thumb,
+.chat--group::-webkit-scrollbar-thumb,
+.DadosContato::-webkit-scrollbar-thumb {
     background-color: #ccc;
     border-radius: 4px;
 }
@@ -283,11 +296,11 @@
 }
 
 .contact-message.continued {
-    margin-left: 32px;
+    margin-left: 0 !important;
 }
-
-.my-message.continued {
-    margin-right: 32px; 
+  
+.chat--group .contact-message.continued {
+    margin-left: 32px !important;
 }
 
 .horaMensagem{
@@ -681,3 +694,149 @@
     justify-content: flex-end;
 }
 
+.group-members p{
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-subtitle);
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 13rem;
+}
+
+.group-members ul{
+    margin-top: 1rem;
+}
+
+.DadosContato {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+.member-item{
+    list-style-type: none;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    margin: 0.5rem 0rem;
+    width: 100%;
+    user-select: none;
+}
+
+.member-item img{
+    width: 2rem;
+    height: 2rem;
+    border-radius: 100%;
+    user-select: none;
+}
+
+.member-item span{
+    margin-left: 0.5rem;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-white);
+}
+
+.barraDivisao{
+    width: 100%;
+    height: 1px;
+    background-color: #8988884f;
+    border-radius: 1px;
+    margin: 1rem 0rem;
+}
+
+.OpcoesUserGrupo{
+    margin-top: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px;
+}
+
+.OpcoesUserGrupo:hover{
+    transition: 0.3s;
+    background-color: rgb(129 129 129 / 15%);
+    cursor: pointer;
+    border-radius: 0.5rem;
+}
+
+.OpcoesUserGrupo svg{
+    font-size: 26px;
+}
+
+.OpcoesUserGrupo h1{
+    font-size: 16px;
+    margin-left: 0.5rem;
+    font-weight: 600;
+}
+
+
+.alinhaGroupDesc{
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    width: 100%;
+    margin: 1rem 0; 
+}
+
+.description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    position: relative;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.description.expanded {
+    -webkit-line-clamp: unset;
+    display: block;
+}
+
+.readMore {
+    color: var(--color-subtitle);;
+    cursor: pointer;
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.group-description-container button{
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.group-description-container svg{
+    font-size: 18px;
+}
+
+.group-description-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+    width: 100%;
+}
+
+.textarea-edit {
+    overflow: hidden;
+    resize: none;
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.readmore-wrapper {
+    width: 100%;
+}

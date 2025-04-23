@@ -54,7 +54,7 @@ const MessageList: React.FC<MessageListProps> = ({
         const isMyMessage = message.idUser === currentUserId;
         const prev = messages[index - 1];
         const isContinuation = !!prev && prev.idUser === message.idUser;
-
+        
         const repliedMessage =
           message.replyTo && message.replyTo !== 0
             ? messages.find(m => m.id === message.replyTo)

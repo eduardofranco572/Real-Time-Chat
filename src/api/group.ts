@@ -53,4 +53,27 @@ router.post('/addGroup', upload.single('imgGrupo'), (req: Request, res: Response
   });
 });
 
+router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Response) => {
+  const { idChat, descricaoGrupo } = req.body;
+  if (!idChat || descricaoGrupo == null) {
+    return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
+  }
+
+  const params: any[] = [descricaoGrupo, idChat];
+  let sql = 'UPDATE grupos SET descricaoGrupo = ? WHERE idChat = ?';
+
+  if (req.file) {
+    sql = 'UPDATE grupos SET descricaoGrupo = ?, imgGrupo = ? WHERE idChat = ?';
+    params.unshift(req.file.filename);
+  }
+
+  db.query(sql, params, (err) => {
+    if (err) {
+      console.error('Erro ao atualizar grupo:', err);
+      return res.status(500).json({ error: 'Erro ao atualizar grupo' });
+    }
+    res.json({ message: 'Grupo atualizado com sucesso' });
+  });
+});
+
 export default router;
