@@ -305,9 +305,11 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
   const idUser = parseInt(req.body.idUser, 10);
   const message = req.body.message as string;
   const replyTo = req.body.replyTo ? parseInt(req.body.replyTo, 10) : null;
+
   if (!idChat || !idUser) {
     return res.status(400).send({ error: 'Dados incompletos' });
   }
+  
   const documentPath = req.file?.path ?? null;
   const nomeDocs = req.file?.originalname ?? null;
   const linkFlag = !!message && isLink(message);
@@ -367,15 +369,18 @@ router.post('/getGroupInfo', (req, res) => {
   `;
 
   db.query(sqlGroup, [idChat], (err, groupResults: any[]) => {
-    if (err) {
-      console.error('Erro ao buscar grupo:', err);
-      return res.status(500).send({ error: err.message });
-    }
+    if (err) return res.status(500).send({ error: err.message });
+
     if (groupResults.length === 0) {
       return res.status(404).send({ error: 'Grupo não encontrado' });
     }
 
     const group = groupResults[0];
+    
+    if (!group.descricaoGrupo || group.descricaoGrupo.trim() === '') {
+      group.descricaoGrupo = 'Bem vindo(a) ao grupo!';
+    }
+
     group.imageUrl = group.imageUrl
       ? `/upload/grupo/${group.imageUrl}`
       : '/upload/grupo/default.png';

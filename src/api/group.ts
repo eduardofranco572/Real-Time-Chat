@@ -54,24 +54,52 @@ router.post('/addGroup', upload.single('imgGrupo'), (req: Request, res: Response
 });
 
 router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Response) => {
-  const { idChat, descricaoGrupo } = req.body;
-  if (!idChat || descricaoGrupo == null) {
+  const { idChat, descricaoGrupo, nomeGrupo } = req.body;
+
+  if (!idChat || (descricaoGrupo == null && nomeGrupo == null)) {
     return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
   }
 
-  const params: any[] = [descricaoGrupo, idChat];
-  let sql = 'UPDATE grupos SET descricaoGrupo = ? WHERE idChat = ?';
+  const updates: string[] = [];
+  const params: any[]    = [];
 
-  if (req.file) {
-    sql = 'UPDATE grupos SET descricaoGrupo = ?, imgGrupo = ? WHERE idChat = ?';
-    params.unshift(req.file.filename);
+  if (descricaoGrupo != null) {
+    updates.push('descricaoGrupo = ?');
+    params.push(descricaoGrupo.trim() === '' 
+      ? 'Bem vindo(a) ao grupo!'
+      : descricaoGrupo);
   }
+
+  if (nomeGrupo != null) {
+    updates.push('nomeGrupo = ?');
+    params.push(nomeGrupo);
+  }
+  
+  if (req.file) {
+    updates.push('imgGrupo = ?');
+    params.push(req.file.filename);
+  }
+
+  if (updates.length === 0) {
+    return res.status(400).json({ error: 'Nada para atualizar' });
+  }
+
+  const sql = `UPDATE grupos SET ${updates.join(', ')} WHERE idChat = ?`;
+  params.push(idChat);
 
   db.query(sql, params, (err) => {
     if (err) {
       console.error('Erro ao atualizar grupo:', err);
       return res.status(500).json({ error: 'Erro ao atualizar grupo' });
     }
+
+    const payload: any = { idChat };
+    if (descricaoGrupo != null) payload.descricaoGrupo = descricaoGrupo;
+    if (nomeGrupo != null) payload.nomeGrupo = nomeGrupo;
+
+    const io = req.app.get('io');
+    io.emit('groupUpdated', payload);
+
     res.json({ message: 'Grupo atualizado com sucesso' });
   });
 });

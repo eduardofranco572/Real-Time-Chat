@@ -807,15 +807,21 @@
     font-size: 0.9rem;
 }
 
-.group-description-container button{
+.group-description-container button,
+.alinhaNome button {
     background-color: transparent;
     border: none;
     cursor: pointer;
     user-select: none;
 }
 
-.group-description-container svg{
+.group-description-container svg,
+.alinhaNome button svg {
     font-size: 18px;
+}
+
+.alinhaNome button {
+    margin-left: 0.5rem;
 }
 
 .group-description-container{
@@ -839,4 +845,21 @@
 
 .readmore-wrapper {
     width: 100%;
+}
+
+.alinhaNome{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+
+
+.alinhaNome input {
+    border: none;
+    background-color: transparent;
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
 }

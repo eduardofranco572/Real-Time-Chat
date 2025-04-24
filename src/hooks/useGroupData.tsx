@@ -1,14 +1,19 @@
 import { useState, useCallback, useEffect } from 'react'
 import { API_URL } from '../config'
+import { io } from 'socket.io-client'
 
 export interface GroupData {
+  nome: string
   descricaoGrupo: string
   imgUrl: string
 }
+
 const defaultImg = '/assets/img/grupoPadrao.svg'
+const socket = io(API_URL)
 
 const useGroupData = (idChat?: number) => {
   const [groupData, setGroupData] = useState<GroupData>({
+    nome: '',
     descricaoGrupo: '',
     imgUrl: defaultImg,
   })
@@ -24,10 +29,11 @@ const useGroupData = (idChat?: number) => {
       if (!res.ok) throw new Error(res.statusText)
 
       const data = await res.json()
+      const nome = data.group.nome || ''
       const descricao = data.group.descricao || ''
       const imgUrl = data.group.imageUrl || defaultImg
 
-      setGroupData({ descricaoGrupo: descricao, imgUrl })
+      setGroupData({ nome, descricaoGrupo: descricao, imgUrl })
     } catch (err) {
       console.error('Erro ao buscar grupo:', err)
     }
@@ -37,20 +43,37 @@ const useGroupData = (idChat?: number) => {
     fetchGroupData()
   }, [fetchGroupData])
 
+
+  useEffect(() => {
+    const onGroupUpdated = (data: { idChat: number; nomeGrupo?: string; descricaoGrupo?: string }) => {
+      if (data.idChat !== idChat) return
+      setGroupData(current => ({
+        ...current,
+        ...(data.nomeGrupo != null ? { nome: data.nomeGrupo } : {}),
+        ...(data.descricaoGrupo != null ? { descricaoGrupo: data.descricaoGrupo } : {}),
+      }))
+    }
+    
+    socket.on('groupUpdated', onGroupUpdated)
+    return () => {
+      socket.off('groupUpdated', onGroupUpdated)
+    }
+  }, [idChat])
+
   const updateGroupData = useCallback(
-    async ({
-      descricaoGrupo,
-      imageFile,
-    }: {
-      descricaoGrupo: string
+    async ({ descricaoGrupo, nomeGrupo, imageFile }: {
+      descricaoGrupo?: string
+      nomeGrupo?: string
       imageFile?: File
     }) => {
       if (!idChat) return
+
       try {
         const form = new FormData()
         form.append('idChat', idChat.toString())
-        form.append('descricaoGrupo', descricaoGrupo)
-        if (imageFile) form.append('imgGrupo', imageFile)
+        if (descricaoGrupo != null) form.append('descricaoGrupo', descricaoGrupo)
+        if (nomeGrupo != null) form.append('nomeGrupo', nomeGrupo)
+        if (imageFile != null) form.append('imgGrupo', imageFile)
 
         const res = await fetch(`${API_URL}/api/group/UpdateGroup`, {
           method: 'POST',

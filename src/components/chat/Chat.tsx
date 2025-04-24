@@ -13,6 +13,7 @@ import useGroupData from '../../hooks/useGroupData';
 import GroupMembersList from '../GroupMembersList';
 import ReadMore from '../ReadMore';
 import TextareaAutosize from 'react-textarea-autosize';
+import ChatDetails from './ChatDetails'
 
 interface ChatProps {
   selectedChatId: number;
@@ -35,20 +36,20 @@ const Chat: React.FC<ChatProps> = ({
   const [showAddCard, setShowAddCard] = useState(false);
   const [showMediaUploader, setShowMediaUploader] = useState(false);
   const [showDocsUploader, setShowDocsUploader] = useState(false);
-
   const { groupData, updateGroupData } = useGroupData(selectedChatId);
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState('');
-
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue]   = useState('');
   const chatInfo = useChatInfo(selectedChatId, idUser, selectedChatIsGroup);
   const { messages, setMessages } = useMessages(selectedChatId);
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
 
   useEffect(() => {
     if (selectedChatIsGroup && groupData) {
-      setDescValue(groupData.descricaoGrupo)
+      setNameValue(groupData.nome);
     }
-  }, [selectedChatIsGroup, groupData])
+  }, [selectedChatIsGroup, groupData]);
 
   if (idUser == null) return <div>Carregando usuário…</div>;
   if (selectedChatId == null) return <div>Selecione um chat para começar.</div>;
@@ -67,6 +68,7 @@ const Chat: React.FC<ChatProps> = ({
       setReplyingMessage,
     });
   };
+
   const onSendMedia = async (file: File, caption: string) => {
     await handleSendMedia({ idUser, idChat: selectedChatId, file, caption });
   };
@@ -85,6 +87,17 @@ const Chat: React.FC<ChatProps> = ({
     setIsEditingDesc((v) => !v)
   }
 
+  const handleToggleEditName = async () => {
+    if (isEditingName) {
+      if (nameValue.trim() === '') {
+        setIsEditingName(false);
+        return;
+      }
+      await updateGroupData({ nomeGrupo: nameValue });
+    }
+    setIsEditingName(v => !v);
+  };
+  
   return (
     <section className='chat-container'>
       <div className='alinhaCO'>
@@ -97,8 +110,17 @@ const Chat: React.FC<ChatProps> = ({
               <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
             </div>
             <div className='infosContatoChat'>
-              <h1>{chatInfo.nome}</h1>
-              <p>{chatInfo.descricao}</p>
+              {selectedChatIsGroup ? (
+                <>
+                  <h1>{groupData.nome}</h1>
+                  <p>{groupData.descricaoGrupo}</p>
+                </>
+              ) : (
+                <>
+                  <h1>{chatInfo!.nome}</h1>
+                  <p>{chatInfo!.descricao}</p>
+                </>
+              )}
             </div>
           </div>
           <div className='opcoesChat'>
@@ -199,64 +221,20 @@ const Chat: React.FC<ChatProps> = ({
       </div>
 
       {showContactDetails && (
-        <div className='DadosContato'>
-          <div className='bodyDC'>
-            <div className='headerDC'>
-              <h1>Dados do Chat</h1>
-              <button onClick={handleHideDetails}>
-                <IoMdClose />
-              </button>
-            </div>
-            <div className='infosDC'>
-              <div className='containerDC'>
-                <div className='detalhesUser'>
-                  <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
-                  <h1>{chatInfo.nome}</h1>
-
-                  {'email' in chatInfo ? (
-                    <p>{(chatInfo as any).email}</p>
-                  ) : selectedChatIsGroup ? (
-                    <div className='group-description-container'>
-                      <div className='barraDivisao'></div>
-
-                      <div className='alinhaGroupDesc'>
-                        {isEditingDesc ? (
-                          <TextareaAutosize
-                            autoFocus
-                            minRows={4}
-                            value={descValue}
-                            onChange={e => setDescValue(e.target.value)}
-                            className='textarea-edit'
-                          />
-                        ) : (
-                          <ReadMore text={groupData.descricaoGrupo} initialLines={4} />
-                        )}
-
-                        <button onClick={handleToggleEdit}>
-                          {isEditingDesc ? <MdCheck /> : <MdEdit />}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p>{chatInfo.descricao}</p>
-                  )}
-                </div>
-
-                <div className='barraDivisao'></div>
-
-                {selectedChatIsGroup && (
-                  <>
-                    <GroupMembersList members={(chatInfo as any).members} />
-                    <div className='OpcoesUserGrupo'>
-                      <IoMdExit />
-                      <h1>Sair do Grupo</h1>
-                    </div>
-                  </>
-                )}
-              </div>  
-            </div>
-          </div>
-        </div>
+        <ChatDetails
+          chatInfo={chatInfo!}
+          groupData={groupData}
+          selectedChatIsGroup={selectedChatIsGroup}
+          isEditingName={isEditingName}
+          nameValue={nameValue}
+          onNameChange={setNameValue}
+          onToggleEditName={handleToggleEditName}
+          isEditingDesc={isEditingDesc}
+          descValue={descValue}
+          onDescChange={setDescValue}
+          onToggleEditDesc={handleToggleEdit}
+          onHideDetails={handleHideDetails}
+        />
       )}
     </section>
   );
