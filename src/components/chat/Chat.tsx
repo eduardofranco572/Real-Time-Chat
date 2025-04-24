@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { IoMdMore, IoMdClose, IoMdSend, IoMdPhotos, IoMdExit } from 'react-icons/io';
-import { MdAdd, MdEdit, MdCheck } from 'react-icons/md';
+import { IoMdMore, IoMdSend, IoMdPhotos } from 'react-icons/io';
+import { MdAdd} from 'react-icons/md';
 import { AiFillAudio } from 'react-icons/ai';
 import { IoDocumentText, IoClose } from 'react-icons/io5';
 import MessageList from './MessageList';
@@ -10,9 +10,6 @@ import useChatInfo from '../../hooks/chatHooks/useChatInfo';
 import useMessages from '../../hooks/chatHooks/useMessages';
 import { useChatHandlers } from '../../hooks/chatHooks/useChatHandlers';
 import useGroupData from '../../hooks/useGroupData';
-import GroupMembersList from '../GroupMembersList';
-import ReadMore from '../ReadMore';
-import TextareaAutosize from 'react-textarea-autosize';
 import ChatDetails from './ChatDetails'
 
 interface ChatProps {
@@ -107,7 +104,10 @@ const Chat: React.FC<ChatProps> = ({
               className='IconeContatoChat'
               onClick={() => setShowContactDetails(!showContactDetails)}
             >
-              <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
+              <img
+                src={selectedChatIsGroup ? groupData.imgUrl : chatInfo.imageUrl}
+                alt={chatInfo.nome}
+              />
             </div>
             <div className='infosContatoChat'>
               {selectedChatIsGroup ? (
@@ -224,6 +224,7 @@ const Chat: React.FC<ChatProps> = ({
         <ChatDetails
           chatInfo={chatInfo!}
           groupData={groupData}
+          updateGroupData={updateGroupData} 
           selectedChatIsGroup={selectedChatIsGroup}
           isEditingName={isEditingName}
           nameValue={nameValue}
@@ -236,6 +237,7 @@ const Chat: React.FC<ChatProps> = ({
           onHideDetails={handleHideDetails}
         />
       )}
+
     </section>
   );
 };

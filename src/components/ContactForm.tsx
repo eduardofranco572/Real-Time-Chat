@@ -12,6 +12,7 @@ import iconePadrao from '../assets/img/iconePadrao.svg';
 import GroupImageEditor from './ProfileImageEditor';
 import useUserId from '../hooks/useUserId';
 import useContacts from '../hooks/useContacts';
+import { ChatItem } from '../components/ContactList';
 
 interface ContactOption {
   value: number;
@@ -47,7 +48,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   setGroupName
 }) => {
   const idUser = useUserId();
-  const { contacts } = useContacts(idUser);
+  const { items: contacts } = useContacts(idUser);
 
   const [isContactVisible, setIsContactVisible] = useState(false);
   const [isGroupVisible, setIsGroupVisible] = useState(false);
@@ -99,9 +100,11 @@ const ContactForm: React.FC<ContactFormProps> = ({
   }, []);
 
   // Mapeia contatos para opções do select
-  const options: ContactOption[] = contacts.map(c => ({
+  const options: ContactOption[] = contacts
+  .filter((c: ChatItem) => !c.isGroup)
+  .map((c: ChatItem) => ({
     value: c.id,
-    label: c.nomeContato,
+    label: c.nome,
     avatar: c.imageUrl || iconePadrao
   }));
 

@@ -56,7 +56,7 @@ router.post('/addGroup', upload.single('imgGrupo'), (req: Request, res: Response
 router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Response) => {
   const { idChat, descricaoGrupo, nomeGrupo } = req.body;
 
-  if (!idChat || (descricaoGrupo == null && nomeGrupo == null)) {
+  if (!idChat || (descricaoGrupo == null && nomeGrupo == null && !req.file)) {
     return res.status(400).json({ error: 'Campos obrigatórios ausentes' });
   }
 
@@ -64,7 +64,7 @@ router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Respo
   const params: any[]    = [];
 
   if (descricaoGrupo != null) {
-    updates.push('descricaoGrupo = ?');
+    updates.push('descricaoGrupo = ?'); 
     params.push(descricaoGrupo.trim() === '' 
       ? 'Bem vindo(a) ao grupo!'
       : descricaoGrupo);
@@ -74,7 +74,7 @@ router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Respo
     updates.push('nomeGrupo = ?');
     params.push(nomeGrupo);
   }
-  
+
   if (req.file) {
     updates.push('imgGrupo = ?');
     params.push(req.file.filename);
@@ -96,6 +96,7 @@ router.post('/UpdateGroup', upload.single('imgGrupo'), (req: Request, res: Respo
     const payload: any = { idChat };
     if (descricaoGrupo != null) payload.descricaoGrupo = descricaoGrupo;
     if (nomeGrupo != null) payload.nomeGrupo = nomeGrupo;
+    if (req.file) payload.imgGrupo = req.file.filename;
 
     const io = req.app.get('io');
     io.emit('groupUpdated', payload);

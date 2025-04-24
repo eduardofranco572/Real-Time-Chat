@@ -47,11 +47,7 @@ const useGroupData = (idChat?: number) => {
   useEffect(() => {
     const onGroupUpdated = (data: { idChat: number; nomeGrupo?: string; descricaoGrupo?: string }) => {
       if (data.idChat !== idChat) return
-      setGroupData(current => ({
-        ...current,
-        ...(data.nomeGrupo != null ? { nome: data.nomeGrupo } : {}),
-        ...(data.descricaoGrupo != null ? { descricaoGrupo: data.descricaoGrupo } : {}),
-      }))
+      fetchGroupData();
     }
     
     socket.on('groupUpdated', onGroupUpdated)

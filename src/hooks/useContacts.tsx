@@ -30,12 +30,25 @@ const useContacts = (idUser: number | string | null) => {
     fetchContacts()
   }, [fetchContacts])
 
+
   useEffect(() => {
     if (!idUser) return
     const handleNew = () => fetchContacts()
     socket.on('newMessage', handleNew)
     return () => {
       socket.off('newMessage', handleNew)
+    }
+  }, [idUser, fetchContacts])
+
+  useEffect(() => {
+    if (!idUser) return
+    const handleGroupUpdated = (data: { idChat: number }) => {
+      fetchContacts()
+    }
+
+    socket.on('groupUpdated', handleGroupUpdated)
+    return () => {
+      socket.off('groupUpdated', handleGroupUpdated)
     }
   }, [idUser, fetchContacts])
 

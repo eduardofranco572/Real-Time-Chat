@@ -153,6 +153,12 @@
     height: 16rem;
     border-radius: 100%;
     user-select: none;
+    cursor: pointer;
+}
+
+.detalhesUser img:hover {
+    transition: 0.2s;
+    opacity: 0.7;
 }
 
 .footerChat{
@@ -734,7 +740,8 @@
     user-select: none;
 }
 
-.member-item span{
+.member-item span,
+.bntAddNewMember button span{
     margin-left: 0.5rem;
     font-size: 14px;
     font-weight: 500;
@@ -750,7 +757,6 @@
 }
 
 .OpcoesUserGrupo{
-    margin-top: 4rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -854,8 +860,6 @@
     margin-top: 1rem;
 }
 
-
-
 .alinhaNome input {
     border: none;
     background-color: transparent;
@@ -863,3 +867,31 @@
     padding: 6px;
     font-size: 14px;
 }
+
+.bntAddNewMember button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    padding: 5px;
+    margin: 0.5rem 0 0 0;
+}
+
+.bntAddNewMember button:hover{
+    transition: 0.3s;
+    background-color: rgb(129 129 129 / 15%);
+    cursor: pointer;
+    border-radius: 0.5rem;
+}
+
+.bntAddNewMember button svg{
+    width: 24px;
+    height: 24px;
+}
+
