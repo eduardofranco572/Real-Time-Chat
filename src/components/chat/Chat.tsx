@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { IoMdMore, IoMdSend, IoMdPhotos } from 'react-icons/io';
-import { MdAdd} from 'react-icons/md';
+import { MdAdd } from 'react-icons/md';
 import { AiFillAudio } from 'react-icons/ai';
 import { IoDocumentText, IoClose } from 'react-icons/io5';
 import MessageList from './MessageList';

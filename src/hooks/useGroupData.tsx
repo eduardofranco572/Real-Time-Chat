@@ -43,18 +43,17 @@ const useGroupData = (idChat?: number) => {
     fetchGroupData()
   }, [fetchGroupData])
 
-
   useEffect(() => {
     const onGroupUpdated = (data: { idChat: number; nomeGrupo?: string; descricaoGrupo?: string }) => {
       if (data.idChat !== idChat) return
-      fetchGroupData();
+      fetchGroupData()
     }
-    
+
     socket.on('groupUpdated', onGroupUpdated)
     return () => {
       socket.off('groupUpdated', onGroupUpdated)
     }
-  }, [idChat])
+  }, [idChat, fetchGroupData])
 
   const updateGroupData = useCallback(
     async ({ descricaoGrupo, nomeGrupo, imageFile }: {
@@ -85,7 +84,46 @@ const useGroupData = (idChat?: number) => {
     [idChat, fetchGroupData]
   )
 
-  return { groupData, updateGroupData }
+  const addParticipants = useCallback(
+    async (participantIds: number[]) => {
+      if (!idChat || participantIds.length === 0) return
+      try {
+        const res = await fetch(`${API_URL}/api/chat/addParticipant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idChat, participantIds }),
+        })
+        if (!res.ok) throw new Error(res.statusText)
+
+        await fetchGroupData()
+      } catch (err) {
+        console.error('Erro ao adicionar participantes:', err)
+      }
+    },
+    [idChat, fetchGroupData]
+  )
+
+  const leaveGroup = useCallback(
+    async (idUser: number) => {
+      if (!idChat) return
+      try {
+        const res = await fetch(`${API_URL}/api/chat/leaveGroup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idChat, idUser }),
+        })
+
+        if (!res.ok) throw new Error('Erro ao sair do grupo')
+          
+        await fetchGroupData()
+      } catch (err) {
+        console.error('Erro ao sair do grupo:', err)
+      }
+    },
+    [idChat, fetchGroupData]
+  )
+
+  return { groupData, updateGroupData, addParticipants, leaveGroup }
 }
 
 export default useGroupData

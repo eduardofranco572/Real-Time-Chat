@@ -350,18 +350,19 @@ router.post('/getGroupInfo', (req, res) => {
   if (!idChat) return res.status(400).send({ error: 'idChat é obrigatório' });
   
   const sqlGroup = `
-    SELECT nomeGrupo   AS nome,
-           imgGrupo    AS imageUrl,
-           descricaoGrupo AS descricao
+    SELECT idChat AS id,
+       nomeGrupo AS nome,
+       imgGrupo AS imageUrl,
+       descricaoGrupo AS descricao
     FROM grupos
     WHERE idChat = ?
     LIMIT 1
   `;
 
   const sqlMembers = `
-    SELECT u.ID        AS id,
-           u.nome      AS nome,
-           u.img       AS imageUrl
+    SELECT u.ID AS id,
+           u.nome AS nome,
+           u.img AS imageUrl
     FROM chat_participants cp
     JOIN usuario u
       ON cp.idUser = u.ID
@@ -408,5 +409,60 @@ router.post('/getGroupInfo', (req, res) => {
   });
 });
 
+router.post('/addParticipant', (req: Request, res: Response) => {
+  const { idChat, participantIds } = req.body
+  if (!idChat || !participantIds) {
+    return res.status(400).json({ error: 'idChat e participantIds são obrigatórios' })
+  }
+
+  let ids: number[] = Array.isArray(participantIds)
+    ? participantIds.map((i: any) => Number(i))
+    : JSON.parse(participantIds).map((i: any) => Number(i))
+
+  ids = ids.filter(id => !isNaN(id))
+  if (ids.length === 0) {
+    return res.status(400).json({ error: 'Nenhum id de participante válido' })
+  }
+
+  const placeholders = ids.map(() => '(?, ?)').join(', ')
+  const values = ids.flatMap(id => [idChat, id])
+
+  const sql = `
+    INSERT IGNORE INTO chat_participants (idChat, idUser)
+    VALUES ${placeholders}
+  `
+  db.query(sql, values, err => {
+    if (err) {
+      console.error('Erro ao adicionar participantes:', err)
+      return res.status(500).json({ error: 'Erro no banco' })
+    }
+
+    const io = req.app.get('io')
+    io.emit('groupUpdated', { idChat })
+    return res.json({ message: 'Participantes adicionados com sucesso' })
+  })
+})
+
+router.post('/leaveGroup', (req: Request, res: Response) => {
+  const { idChat, idUser } = req.body
+  if (!idChat || !idUser) {
+    return res.status(400).json({ error: 'idChat e idUser são obrigatórios' })
+  }
+
+  const sql = `
+    DELETE FROM chat_participants
+    WHERE idChat = ? AND idUser = ?
+  `
+  db.query(sql, [idChat, idUser], (err, result) => {
+    if (err) {
+      console.error('Erro ao remover participante:', err)
+      return res.status(500).json({ error: 'Erro ao sair do grupo' })
+    }
+
+    const io = req.app.get('io')
+    io.emit('groupUpdated', { idChat })
+    return res.json({ message: 'Saiu do grupo com sucesso' })
+  })
+})
 
 export default router;

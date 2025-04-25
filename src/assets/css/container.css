@@ -895,3 +895,139 @@
     height: 24px;
 }
 
+.overlayAddMembers{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 2rem;
+    padding: 2rem;
+    z-index: 1;
+    background-color: var(--color-container);
+    border: 1px solid rgba(255, 255, 255, .25);
+    backdrop-filter: blur(5px);
+}
+
+.headerModal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.headerModal h1 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--color-white);
+}
+
+.headerModal p {
+    margin-top: 0.5rem;
+    font-size: 16px;
+    color: var(--color-subtitle);
+    max-width: 25rem;
+}
+
+.containerAddMembers{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.selectAddMembers{
+    margin: 2rem;
+}
+
+.btnCloseAddMembers {
+    display: flex;
+    justify-content: end;
+    align-items: end;
+    width: 100%;
+}
+
+.btnCloseAddMembers button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.btnCloseAddMembers button svg {
+    font-size: 26px;
+}
+
+.btnCloseAddMembers button:hover {
+    transition: 0.2s;
+    transform: scale(1.2);
+}
+
+.btnSaveMembers {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 11rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin: 1rem;
+}
+
+.btnSaveMembers:hover {
+    transition: 0.2s;
+    transform: scale(1.1);
+}
+
+.swal-custom-popup {
+    background: #0e0e0e !important;
+}
+  
+.swal-custom-title,
+.swal-custom-content {
+    color: white !important;
+}
+  
+.swal-btn-confirm {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 11rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin: 1rem;
+}
+  
+.swal-btn-cancel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 11rem;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    font-size: 16px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    margin: 1rem;
+}
+
+
+.swal-btn-confirm:hover,
+.swal-btn-cancel:hover {
+    opacity: 0.8;
+}
+  
