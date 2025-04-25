@@ -84,6 +84,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
     setUploadedImage(file);
     setUploaderVisible(true);
   };
+  
   const handleSaveStatus = async (file: File, caption: string) => {
     await saveStatus(file, caption);
     setUploaderVisible(false);
@@ -104,7 +105,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   }, [fetchContacts]);
 
   return (
-    <>
+    <> 
       {isFormVisible && (
         <ContactForm
           onClose={handleBtnClose}

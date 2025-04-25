@@ -11,6 +11,7 @@ export interface ChatItem {
   lastMessageAt?: string;
   chatId: number;
   isGroup: boolean;
+  lastSenderName: string 
 }
 
 interface ContactListProps {
@@ -38,9 +39,13 @@ const ContactList: React.FC<ContactListProps> = ({ items, onOpenChat }) => (
               <h1>{item.nome}</h1>
               <p>
                 {item.mensagem
-                  ? item.mensagem
+                  ? (item.isGroup
+                      ? `${item.lastSenderName}: ${item.mensagem}`
+                      : item.mensagem)
                   : item.mediaUrl
-                    ? 'mídia enviada'
+                    ? (item.isGroup
+                        ? `${item.lastSenderName}: mídia enviada`
+                        : 'mídia enviada')
                     : ''
                 }
               </p>

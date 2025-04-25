@@ -53,7 +53,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
 }) => {
   const idUser = useUserId()
   const { items: contacts } = useContacts(idUser)
-  const { addParticipants, leaveGroup } = useGroupData((chatInfo as GroupInfo).id)
+  const { addParticipants, leaveGroup } = useGroupData((chatInfo as GroupInfo).id, selectedChatIsGroup)
 
   // File/image
   const [showImageEditor, setShowImageEditor] = useState(false)

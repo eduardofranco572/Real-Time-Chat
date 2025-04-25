@@ -110,8 +110,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 45rem;
-    height: 38rem;
+    width: 35rem;
+    height: 35rem;
     border-radius: 1rem;
     background-color: var(--color-container);
     z-index: 2;
@@ -120,8 +120,8 @@
 }
 
 .headerPUCad img{
-    width: 12rem;
-    height: 12rem;
+    width: 10rem;
+    height: 10rem;
 }
 
 .btnClose{
@@ -160,6 +160,7 @@
 
 .headerPUCad{
     display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
@@ -172,14 +173,14 @@
     margin-top: 1rem;
     width: 90%;
     height: 2px;
-    background-color: rgb(131 131 131);
+    background-color: #8988884f;
 }
 
 .infosHPUCad p{
     margin-top: 0.5rem;
-    font-size: 16px;
+    font-size: 14px;
     color: var(--color-subtitle);
-    max-width: 25rem;
+    max-width: 20rem;
 }
 
 .btnAddContato input,
@@ -210,8 +211,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100%
+    margin-top: 1rem;
 }
 
 .elementosFormPp{
@@ -284,6 +284,25 @@
     align-items: flex-start;
     width: 100%;  
     margin-top: 0.5rem;
+    max-height: 90%;
+    overflow-y: auto;   
+    overflow-x: hidden; 
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+}
+
+
+.contatos::-webkit-scrollbar {
+    width: 8px;
+}
+
+.contatos::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.contatos::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
 }
 
 .cont1{
@@ -411,7 +430,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 4rem;
+    margin-top: 1rem;
 }
 
 .alinhaOptionsAdd button{
@@ -441,8 +460,16 @@
 }
 
 .imgPadraoGroup{
-    width: 6rem !important;
-    height: 6rem !important;
+    width: 5rem !important;
+    height: 5rem !important;
+}
+
+.fotoGrupo img{
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    user-select: none;
 }
 
 /* biblioteca select */

@@ -1,3 +1,4 @@
+// src/hooks/useContacts.ts
 import { useState, useEffect, useCallback } from 'react'
 import io from 'socket.io-client'
 import { API_URL } from '../config'
@@ -12,14 +13,29 @@ const useContacts = (idUser: number | string | null) => {
     if (!idUser) return
 
     try {
-      const response = await fetch(`${API_URL}/api/contacts/PegaContatos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idUser }),
-      })
+      const response = await fetch(
+        `${API_URL}/api/contacts/PegaContatos`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idUser }),
+        }
+      )
       const { message, lista } = await response.json()
       if (message === 'ok') {
-        setItems(lista)
+        setItems(
+          lista.map((item: any) => ({
+            id: item.id,
+            nome: item.nome,
+            imageUrl: item.imageUrl,
+            mensagem: item.mensagem,
+            mediaUrl: item.mediaUrl,
+            lastMessageAt: item.lastMessageAt,
+            chatId: item.chatId,
+            isGroup: !!item.isGroup,
+            lastSenderName: item.lastSenderName || '',
+          }))
+        )
       }
     } catch (error) {
       console.error('Erro ao buscar contatos e grupos:', error)
@@ -29,7 +45,6 @@ const useContacts = (idUser: number | string | null) => {
   useEffect(() => {
     fetchContacts()
   }, [fetchContacts])
-
 
   useEffect(() => {
     if (!idUser) return
@@ -42,10 +57,9 @@ const useContacts = (idUser: number | string | null) => {
 
   useEffect(() => {
     if (!idUser) return
-    const handleGroupUpdated = (data: { idChat: number }) => {
+    const handleGroupUpdated = () => {
       fetchContacts()
     }
-
     socket.on('groupUpdated', handleGroupUpdated)
     return () => {
       socket.off('groupUpdated', handleGroupUpdated)

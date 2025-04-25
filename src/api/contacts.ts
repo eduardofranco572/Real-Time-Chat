@@ -94,92 +94,123 @@ router.post('/getChatForContact', (req: Request, res: Response) => {
   });
 });
 
-router.post('/PegaContatos', (req, res) => {
-  const { idUser } = req.body;
-  if (!idUser) return res.status(400).json({ error: 'idUser é obrigatório' });
+router.post('/PegaContatos', (req: Request, res: Response) => {
+  const { idUser } = req.body
+  if (!idUser) {
+    return res.status(400).json({ error: 'idUser é obrigatório' })
+  }
 
   const sql = `
-    -- 1) contatos individuais
-    SELECT
-      C.idContato AS id,
-      C.nomeContato AS nome,
-      U.img AS img,
-      LM.mensagem,
-      LM.mediaUrl,
-      LM.lastMessageAt,
-      (
-        SELECT cp1.idChat
-        FROM chat_participants cp1
-        JOIN chat_participants cp2 
-          ON cp1.idChat = cp2.idChat
-        WHERE cp1.idUser = ? 
-          AND cp2.idUser = C.idContato
-        LIMIT 1
-      ) AS chatId,
-      FALSE AS isGroup
-    FROM contatos C
-    INNER JOIN usuario U 
-      ON U.ID = C.idContato
-    LEFT JOIN (
-      SELECT cm.idChat, cm.mensagem, cm.mediaUrl, cm.createdAt AS lastMessageAt
-      FROM chat_messages cm
-      INNER JOIN (
-        SELECT idChat, MAX(createdAt) AS createdAt
-        FROM chat_messages
-        GROUP BY idChat
-      ) t 
-        ON cm.idChat = t.idChat 
-       AND cm.createdAt = t.createdAt
-    ) AS LM 
-      ON LM.idChat = (
-        SELECT cp1.idChat
-        FROM chat_participants cp1
-        JOIN chat_participants cp2 
-          ON cp1.idChat = cp2.idChat
-        WHERE cp1.idUser = ? 
-          AND cp2.idUser = C.idContato
-        LIMIT 1
-      )
-    WHERE C.idUser = ?
+    (
+      -- contatos individuais
+      SELECT
+        C.idContato AS id,
+        C.nomeContato AS nome,
+        U.img AS img,
+        LM.mensagem,
+        LM.mediaUrl,
+        LM.lastMessageAt,
+        U2.nome AS lastSenderName,
+        (
+          SELECT cp1.idChat
+          FROM chat_participants cp1
+          JOIN chat_participants cp2
+            ON cp1.idChat = cp2.idChat
+          WHERE cp1.idUser = ?        
+            AND cp2.idUser = C.idContato
+          LIMIT 1
+        ) AS chatId,
+        FALSE  AS isGroup
+      FROM contatos C
+      INNER JOIN usuario U
+        ON U.ID = C.idContato
+      LEFT JOIN (
+        -- última mensagem de cada chat
+        SELECT
+          cm.idChat,
+          cm.mensagem,
+          cm.mediaUrl,
+          cm.createdAt AS lastMessageAt,
+          cm.idUser AS senderId
+        FROM chat_messages cm
+        INNER JOIN (
+          SELECT idChat, MAX(createdAt) AS createdAt
+          FROM chat_messages
+          GROUP BY idChat
+        ) t
+          ON cm.idChat = t.idChat
+         AND cm.createdAt = t.createdAt
+      ) AS LM
+        ON LM.idChat = (
+          SELECT cp1.idChat
+          FROM chat_participants cp1
+          JOIN chat_participants cp2
+            ON cp1.idChat = cp2.idChat
+          WHERE cp1.idUser = ?      
+            AND cp2.idUser = C.idContato
+          LIMIT 1
+        )
+      LEFT JOIN usuario U2
+        ON U2.ID = LM.senderId
+
+      WHERE C.idUser = ? 
+    )
 
     UNION ALL
 
-    -- Grupos
-    SELECT
-      G.id AS id,
-      G.nomeGrupo AS nome,
-      G.imgGrupo AS img,
-      LM2.mensagem,
-      LM2.mediaUrl,
-      LM2.lastMessageAt,
-      G.idChat AS chatId,
-      TRUE AS isGroup
-    FROM grupos G
-    INNER JOIN chat_participants cp
-      ON cp.idChat = G.idChat 
-      AND cp.idUser = ?
-    LEFT JOIN (
-      SELECT cm.idChat, cm.mensagem, cm.mediaUrl, cm.createdAt AS lastMessageAt
-      FROM chat_messages cm
-      INNER JOIN (
-        SELECT idChat, MAX(createdAt) AS createdAt
-        FROM chat_messages
-        GROUP BY idChat
-      ) t 
-        ON cm.idChat = t.idChat 
-       AND cm.createdAt = t.createdAt
-    ) AS LM2 ON LM2.idChat = G.idChat
+    (
+      -- grupos
+      SELECT
+        G.id AS id,
+        G.nomeGrupo AS nome,
+        G.imgGrupo AS img,
+        LM2.mensagem,
+        LM2.mediaUrl,
+        LM2.lastMessageAt,
+        U3.nome AS lastSenderName,
+        G.idChat AS chatId,
+        TRUE AS isGroup
+      FROM grupos G
+      INNER JOIN chat_participants cp
+        ON cp.idChat = G.idChat
+       AND cp.idUser = ?           
+      LEFT JOIN (
+        -- última mensagem de cada grupo
+        SELECT
+          cm.idChat,
+          cm.mensagem,
+          cm.mediaUrl,
+          cm.createdAt AS lastMessageAt,
+          cm.idUser AS senderId
+        FROM chat_messages cm
+        INNER JOIN (
+          SELECT idChat, MAX(createdAt) AS createdAt
+          FROM chat_messages
+          GROUP BY idChat
+        ) t
+          ON cm.idChat = t.idChat
+         AND cm.createdAt = t.createdAt
+      ) AS LM2
+        ON LM2.idChat = G.idChat
+      LEFT JOIN usuario U3
+        ON U3.ID = LM2.senderId
+    )
 
     ORDER BY lastMessageAt DESC;
-  `;
+  `
 
-  db.query(sql,
-
-    [idUser, idUser, idUser, idUser, idUser],
+  db.query(
+    sql,
+    [
+      idUser,
+      idUser,
+      idUser,
+      idUser
+    ],
     (err, results: any[]) => {
       if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Erro no servidor' });
+        console.error('Erro ao buscar contatos e grupos:', err)
+        return res.status(500).json({ error: 'Erro no servidor' })
       }
 
       const lista = results.map(item => ({
@@ -192,13 +223,14 @@ router.post('/PegaContatos', (req, res) => {
         mediaUrl: item.mediaUrl,
         lastMessageAt: item.lastMessageAt,
         chatId: item.chatId,
-        isGroup: !!item.isGroup
-      }));
+        isGroup: !!item.isGroup,
+        lastSenderName: item.lastSenderName || '',
+      }))
 
-      res.json({ message: 'ok', lista });
+      res.json({ message: 'ok', lista })
     }
-  );
-});
+  )
+})
 
 router.post('/InfoUser', (req: Request, res: Response) => {
   const { idUser } = req.body;
