@@ -23,6 +23,7 @@ const socket = io(`${API_URL}`);
 const useMessages = (currentChatId: number | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
 
+  // Carregar mensagens iniciais
   useEffect(() => {
     if (!currentChatId) return;
     (async () => {
@@ -40,14 +41,14 @@ const useMessages = (currentChatId: number | null) => {
           setMessages(result.messages as Message[]);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Erro ao buscar mensagens:', err);
       }
     })();
   }, [currentChatId]);
 
+  //Escutar novas mensagens
   useEffect(() => {
     if (!currentChatId) return;
-
     const handleNewMessage = (newMessage: Message) => {
       if (newMessage.idChat !== currentChatId) return;
       setMessages(prev =>
@@ -60,6 +61,30 @@ const useMessages = (currentChatId: number | null) => {
     socket.on('newMessage', handleNewMessage);
     return () => {
       socket.off('newMessage', handleNewMessage);
+    };
+  }, [currentChatId]);
+
+  useEffect(() => {
+    if (!currentChatId) return;
+
+    const handleDeleted = ({ id }: { id: number }) => {
+      setMessages(prev => prev.filter(m => m.id !== id));
+    };
+
+    const handleUpdated = ({ id, message }: { id: number; message: string }) => {
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === id ? { ...m, mensagem: message } : m
+        )
+      );
+    };
+
+    socket.on('messageDeleted', handleDeleted);
+    socket.on('messageUpdated', handleUpdated);
+
+    return () => {
+      socket.off('messageDeleted', handleDeleted);
+      socket.off('messageUpdated', handleUpdated);
     };
   }, [currentChatId]);
 

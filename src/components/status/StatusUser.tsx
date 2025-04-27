@@ -5,6 +5,9 @@ import StatusViewer from './StatusViewer';
 //@ts-expect-error ignorar img 
 import iconePadrao from '../../assets/img/iconePadrao.svg';
 
+//@ts-expect-error ignorar img 
+import iconeNoStatus from '../../assets/img/going-up.svg';
+
 const StatusUser: React.FC = () => {
   const {
     coverStatus,
@@ -33,7 +36,14 @@ const StatusUser: React.FC = () => {
           />
         </div>
       ) : (
-        <p>Sem capa de status disponível.</p> //colocar o icone do usuario!
+        <div className='noStatus'>  
+          <img
+            className="iconeNoStatusUser"
+            src={iconeNoStatus}
+            alt="Sem Status"
+          />
+          <p>Você ainda não postou nada hoje!</p>
+        </div>
       )}
 
       {loading && coverStatus && <p>Carregando seus status...</p>}

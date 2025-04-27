@@ -102,42 +102,57 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
   }
 
   // membro sair do grupo
+  const swalCustomClasses = {
+    popup: 'swal-custom-popup',
+    title: 'swal-custom-title',
+    htmlContainer: 'swal-custom-content',
+    confirmButton: 'swal-btn-confirm',
+    cancelButton: 'swal-btn-cancel'
+  };
+  const swalDefaults = {
+    buttonsStyling: false,
+    customClass: swalCustomClasses
+  };
+  
   const handleConfirmLeave = () => {
     Swal.fire({
       title: 'Você tem certeza?',
       text: 'Ao sair, você não receberá mais mensagens deste grupo.',
       icon: 'warning',
-    
       showCancelButton: true,
       confirmButtonText: 'Sim, sair',
       cancelButtonText: 'Cancelar',
-    
-      buttonsStyling: false,
-      customClass: {
-        popup: 'swal-custom-popup',
-        title: 'swal-custom-title',
-        htmlContainer: 'swal-custom-content',
-        confirmButton: 'swal-btn-confirm',
-        cancelButton: 'swal-btn-cancel'
-      }
+      ...swalDefaults
     }).then(async result => {
       if (result.isConfirmed) {
-        await handleLeave()
+        await handleLeave();
       }
-    })
-  }
+    });
+  };
   
   const handleLeave = async () => {
-    if (!idUser) return
+    if (!idUser) return;
     try {
-      await leaveGroup(idUser)
-      Swal.fire('Saído', 'Você saiu do grupo com sucesso.', 'success')
-      onHideDetails()
+      await leaveGroup(idUser);
+      await Swal.fire({
+        title: 'Saído',
+        text: 'Você saiu do grupo com sucesso.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        ...swalDefaults
+      });
+      onHideDetails();
     } catch (err) {
-      console.error('Erro ao sair do grupo:', err)
-      Swal.fire('Erro', 'Não foi possível sair do grupo.', 'error')
+      console.error('Erro ao sair do grupo:', err);
+      await Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível sair do grupo.',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        ...swalDefaults
+      });
     }
-  }
+  };
 
   return (
     <>

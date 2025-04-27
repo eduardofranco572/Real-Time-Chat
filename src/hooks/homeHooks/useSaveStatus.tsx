@@ -26,9 +26,7 @@ const useSaveStatus = (idUser: number | null) => {
         body: formData,
       });
       const result = await response.json();
-      if (response.ok) {
-        alert('Status salvo com sucesso!');
-      } else {
+      if (!response.ok) {
         alert('Erro ao salvar status: ' + (result.error || 'Erro desconhecido'));
       }
     } catch (error) {

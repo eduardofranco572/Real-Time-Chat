@@ -48,6 +48,27 @@
     object-position: center;
 }
 
+.iconeNoStatusUser{
+    width: 10rem;
+    height: 10rem;
+    user-select: none;
+    margin-bottom: 1rem;
+}
+
+.noStatus{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.noStatus p{
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-subtitle);
+}
+
 .btnADDStatus{
     margin-top: 1rem;
 }
