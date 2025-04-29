@@ -23,43 +23,44 @@ const upload = multer({ storage });
 
 router.post('/addcontato', (req: Request, res: Response) => {
   const { email, nome, idUser } = req.body;
-  const sqlCheckEmail = "SELECT id FROM usuario WHERE email = ?";
-
-  db.query(sqlCheckEmail, [email], (err, result) => {
-    if (err) {
-      console.error('Erro ao verificar o email:', err);
-      return res.status(500).send({ error: 'Erro ao verificar o email' });
-    }
-    if (result.length === 0) {
-      return res.status(401).send({ error: 'Usuário não encontrado' });
-    }
+  const sqlCheckEmail = "SELECT id, nome FROM usuario WHERE email = ?";
+  db.query(sqlCheckEmail, [email], (err, result: any[]) => {
+    if (err) return res.status(500).send({ error: 'Erro ao verificar o email' });
+    if (!result.length) return res.status(401).send({ error: 'Usuário não encontrado' });
 
     const idContato = result[0].id;
+    // Inserir A->B
+    const sqlInsert = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
+    db.query(sqlInsert, [idUser, idContato, nome], err2 => {
+      if (err2) return res.status(500).send({ error: 'Erro ao cadastrar contato' });
 
-    const sqlInsertContato = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
-    db.query(sqlInsertContato, [idUser, idContato, nome], (err2) => {
-      if (err2) {
-        console.error('Erro ao adicionar contato:', err2);
-        return res.status(500).send({ error: 'Erro ao cadastrar contato' });
-      }
+      // Busca nome de A para registro B->A
+      db.query("SELECT nome FROM usuario WHERE ID = ?", [idUser], (errN, nomeRes: any[]) => {
+        const meuNome = !errN && nomeRes[0]?.nome ? nomeRes[0].nome : 'Contato';
+        // Inserir B->A
+        const sqlReverse = `
+          INSERT INTO contatos (idUser, idContato, nomeContato)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE nomeContato = VALUES(nomeContato)`;
+        db.query(sqlReverse, [idContato, idUser, meuNome], errR => {
+          if (errR) console.error('Reverse insert error:', errR);
 
-      const nomeChat = null;
-      const sqlCreateChat = "INSERT INTO chats (nomeChat) VALUES (?)";
-      db.query(sqlCreateChat, [nomeChat], (err3, chatResult) => {
-        if (err3) {
-          console.error('Erro ao criar chat:', err3);
-          return res.status(500).send({ error: 'Erro ao criar chat' });
-        }
-        const idChat = chatResult.insertId;
+          //Criar chat
+          db.query("INSERT INTO chats (nomeChat) VALUES (?)", [null], (errC, chatRes: any) => {
+            if (errC) return res.status(500).send({ error: 'Erro ao criar chat' });
+            const idChat = chatRes.insertId;
+            db.query(
+              "INSERT INTO chat_participants (idChat, idUser) VALUES (?, ?), (?, ?)",
+              [idChat, idUser, idChat, idContato],
+              errP => {
+                if (errP) return res.status(500).send({ error: 'Erro ao criar participantes' });
 
-        const sqlInsertParticipants = "INSERT INTO chat_participants (idChat, idUser) VALUES (?, ?), (?, ?)";
-        db.query(sqlInsertParticipants, [idChat, idUser, idChat, idContato], (err4) => {
-          if (err4) {
-            console.error('Erro ao inserir participantes do chat:', err4);
-            return res.status(500).send({ error: 'Erro ao criar participantes do chat' });
-          }
-
-          res.send({ message: 'Contato e chat criados com sucesso', idChat });
+                const io = req.app.get('io');
+                io.emit('newContact', { idUser, idContato, idChat });
+                return res.send({ message: 'Contato e chat criados com sucesso', idChat });
+              }
+            );
+          });
         });
       });
     });
@@ -296,6 +297,63 @@ router.post('/UpdateUser', upload.single('img'), (req: Request, res: Response) =
       return res.status(500).send({ error: 'Erro ao atualizar dados do usuário' });
     }
     res.send({ message: 'Dados atualizados com sucesso' });
+  });
+});
+
+router.post('/removeContato', (req: Request, res: Response) => {
+  const { idUser, idContato } = req.body;
+  if (!idUser || !idContato) {
+    return res.status(400).json({ error: 'idUser e idContato são obrigatórios' });
+  }
+
+  const sqlGetChat = `
+    SELECT cp1.idChat
+    FROM chat_participants cp1
+    JOIN chat_participants cp2
+      ON cp1.idChat = cp2.idChat
+    WHERE cp1.idUser = ? AND cp2.idUser = ?
+    LIMIT 1
+  `;
+
+  db.query(sqlGetChat, [idUser, idContato], (errChat, chatRows: any[]) => {
+    if (errChat) {
+      console.error('Erro ao buscar chat:', errChat);
+      return res.status(500).json({ error: 'Erro ao buscar chat' });
+    }
+
+    const idChat = chatRows[0]?.idChat;
+
+    const sqlDeleteContatos = `
+      DELETE FROM contatos
+      WHERE (idUser = ? AND idContato = ?)
+         OR (idUser = ? AND idContato = ?)
+    `;
+    db.query(sqlDeleteContatos, [idUser, idContato, idContato, idUser], (errDel, resultDel) => {
+      if (errDel) {
+        console.error('Erro ao remover contatos:', errDel);
+        return res.status(500).json({ error: 'Erro ao remover contatos' });
+      }
+
+      //em chat privado remove participantes e o chat
+      if (idChat) {
+        db.query('DELETE FROM chat_participants WHERE idChat = ?', [idChat], (errP) => {
+          if (errP) console.error('Erro ao remover participantes:', errP);
+          db.query('DELETE FROM chats WHERE idChat = ?', [idChat], (errC) => {
+            if (errC) console.error('Erro ao remover chat:', errC);
+
+            const io = req.app.get('io');
+            io.emit('contactRemoved', { idUser, idContato });
+            io.emit('contactRemoved', { idUser: idContato, idContato: idUser });
+            return res.json({ message: 'Contato e chat removidos para ambos' });
+          });
+        });
+      } else {
+        const io = req.app.get('io');
+        io.emit('contactRemoved', { idUser, idContato });
+        io.emit('contactRemoved', { idUser: idContato, idContato: idUser });
+        return res.json({ message: 'Contato removido para ambos' });
+      }
+    });
   });
 });
 

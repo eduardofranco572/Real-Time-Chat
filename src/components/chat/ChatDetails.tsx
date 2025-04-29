@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import Select, { MultiValue } from 'react-select'
-import { IoMdClose, IoMdExit, IoMdPersonAdd } from 'react-icons/io'
+import { IoMdClose, IoMdExit} from 'react-icons/io'
 import { MdEdit, MdCheck } from 'react-icons/md'
 import TextareaAutosize from 'react-textarea-autosize'
 import ReadMore from '../ReadMore'
@@ -109,6 +109,7 @@ const ChatDetails: React.FC<ChatDetailsProps> = ({
     confirmButton: 'swal-btn-confirm',
     cancelButton: 'swal-btn-cancel'
   };
+  
   const swalDefaults = {
     buttonsStyling: false,
     customClass: swalCustomClasses

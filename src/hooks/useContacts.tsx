@@ -1,17 +1,15 @@
-// src/hooks/useContacts.ts
-import { useState, useEffect, useCallback } from 'react'
-import io from 'socket.io-client'
-import { API_URL } from '../config'
-import { ChatItem } from '../components/ContactList'
+import { useState, useEffect, useCallback } from 'react';
+import io from 'socket.io-client';
+import { API_URL } from '../config';
+import { ChatItem } from '../components/ContactList';
 
-const socket = io(API_URL)
+const socket = io(API_URL);
 
 const useContacts = (idUser: number | string | null) => {
-  const [items, setItems] = useState<ChatItem[]>([])
+  const [items, setItems] = useState<ChatItem[]>([]);
 
   const fetchContacts = useCallback(async () => {
-    if (!idUser) return
-
+    if (!idUser) return;
     try {
       const response = await fetch(
         `${API_URL}/api/contacts/PegaContatos`,
@@ -20,53 +18,57 @@ const useContacts = (idUser: number | string | null) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idUser }),
         }
-      )
-      const { message, lista } = await response.json()
+      );
+      const { message, lista } = await response.json();
       if (message === 'ok') {
         setItems(
-          lista.map((item: any) => ({
-            id: item.id,
-            nome: item.nome,
-            imageUrl: item.imageUrl,
-            mensagem: item.mensagem,
-            mediaUrl: item.mediaUrl,
-            lastMessageAt: item.lastMessageAt,
-            chatId: item.chatId,
-            isGroup: !!item.isGroup,
-            lastSenderName: item.lastSenderName || '',
+          lista.map((i: any) => ({
+            id: i.id,
+            nome: i.nome,
+            imageUrl: i.imageUrl,
+            mensagem: i.mensagem,
+            mediaUrl: i.mediaUrl,
+            lastMessageAt: i.lastMessageAt,
+            chatId: i.chatId,
+            isGroup: !!i.isGroup,
+            lastSenderName: i.lastSenderName || '',
           }))
-        )
+        );
       }
     } catch (error) {
-      console.error('Erro ao buscar contatos e grupos:', error)
+      console.error('Erro ao buscar contatos e grupos:', error);
     }
-  }, [idUser])
+  }, [idUser]);
 
   useEffect(() => {
-    fetchContacts()
-  }, [fetchContacts])
+    fetchContacts();
+  }, [fetchContacts]);
 
+  // Eventos de tempo real
   useEffect(() => {
-    if (!idUser) return
-    const handleNew = () => fetchContacts()
-    socket.on('newMessage', handleNew)
+    if (!idUser) return;
+
+    const handlers: Record<string, (data?: any) => void> = {
+      newMessage: () => fetchContacts(),
+      groupUpdated: () => fetchContacts(),
+      contactRemoved: (data) => {
+        if (data.idUser.toString() === idUser.toString()) fetchContacts();
+      },
+      newContact: (data) => {
+        const userStr = idUser.toString();
+        if (data.idUser.toString() === userStr || data.idContato.toString() === userStr) {
+          fetchContacts();
+        }
+      },
+    };
+
+    Object.entries(handlers).forEach(([event, fn]) => socket.on(event, fn));
     return () => {
-      socket.off('newMessage', handleNew)
-    }
-  }, [idUser, fetchContacts])
+      Object.entries(handlers).forEach(([event, fn]) => socket.off(event, fn));
+    };
+  }, [idUser, fetchContacts]);
 
-  useEffect(() => {
-    if (!idUser) return
-    const handleGroupUpdated = () => {
-      fetchContacts()
-    }
-    socket.on('groupUpdated', handleGroupUpdated)
-    return () => {
-      socket.off('groupUpdated', handleGroupUpdated)
-    }
-  }, [idUser, fetchContacts])
+  return { items, fetchContacts };
+};
 
-  return { items, fetchContacts }
-}
-
-export default useContacts
+export default useContacts;

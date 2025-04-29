@@ -3,14 +3,19 @@ import { IoMdMore, IoMdSend, IoMdPhotos } from 'react-icons/io';
 import { MdAdd } from 'react-icons/md';
 import { AiFillAudio } from 'react-icons/ai';
 import { IoDocumentText, IoClose } from 'react-icons/io5';
-import MessageList from './MessageList';
-import ChatMediaUploader from './ChatMediaUploader';
-import ChatDocsUploader from './ChatDocsUploader';
+
+import useGroupData from '../../hooks/useGroupData';
 import useChatInfo from '../../hooks/chatHooks/useChatInfo';
 import useMessages from '../../hooks/chatHooks/useMessages';
 import { useChatHandlers } from '../../hooks/chatHooks/useChatHandlers';
-import useGroupData from '../../hooks/useGroupData';
+import useRemoveContact from '../../hooks/chatHooks/useRemoveContact';
+
+import MessageList from './MessageList';
+import ChatMediaUploader from './ChatMediaUploader';
+import ChatDocsUploader from './ChatDocsUploader';
 import ChatDetails from './ChatDetails'
+import WallpaperEditor from './WallpaperEditor';
+
 
 interface ChatProps {
   selectedChatId: number;
@@ -41,12 +46,21 @@ const Chat: React.FC<ChatProps> = ({
   const chatInfo = useChatInfo(selectedChatId, idUser, selectedChatIsGroup);
   const { messages, setMessages } = useMessages(selectedChatId);
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
+  const [showHeaderOptions, setShowHeaderOptions] = useState(false);
+  const [showWallpaperEditor, setShowWallpaperEditor] = useState(false);
+  const [wallpaperUrl, setWallpaperUrl] = useState<string | null>(null);
+  const { removeContact, loading: removing, error: removeError } = useRemoveContact();
 
   useEffect(() => {
     if (selectedChatIsGroup && groupData) {
       setNameValue(groupData.nome);
     }
   }, [selectedChatIsGroup, groupData]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('chatWallpaper');
+    if (saved) setWallpaperUrl(saved);
+  }, []);
 
   if (idUser == null) return <div>Carregando usuário…</div>;
   if (selectedChatId == null) return <div>Selecione um chat para começar.</div>;
@@ -94,7 +108,28 @@ const Chat: React.FC<ChatProps> = ({
     }
     setIsEditingName(v => !v);
   };
-  
+
+  const handleOpenWallpaper = () => {
+    setShowHeaderOptions(false);
+    setShowWallpaperEditor(true);
+  };
+
+  const handleSaveWallpaper = (url: string) => {
+    localStorage.setItem('chatWallpaper', url);
+    setWallpaperUrl(url);
+    setShowWallpaperEditor(false);
+  };
+
+  const handleCancelWallpaper = () => {
+    setShowWallpaperEditor(false);
+  };
+
+  const handleConfirmUnfriend = () => {
+    setShowHeaderOptions(false);
+    if (!chatInfo || chatInfo.isGroup) return;
+    removeContact(idUser!, chatInfo.id);
+  };
+
   return (
     <section className='chat-container'>
       <div className='alinhaCO'>
@@ -123,12 +158,46 @@ const Chat: React.FC<ChatProps> = ({
               )}
             </div>
           </div>
-          <div className='opcoesChat'>
+          <div
+            className='opcoesChat'
+            onClick={() => setShowHeaderOptions(v => !v)}
+            style={{ position: 'relative' }}
+          >
             <IoMdMore />
+            {showHeaderOptions && (
+              <div className='header-options-card'>
+                <div className='itensHeaderOptions'>
+                  <button onClick={handleOpenWallpaper}>
+                    Papel de parede
+                  </button>
+                  {!selectedChatIsGroup && (
+                    <button onClick={handleConfirmUnfriend} disabled={removing}>
+                      {removing ? 'Removendo...' : 'Desfazer amizade'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {showWallpaperEditor && (
+              <WallpaperEditor
+                onSave={handleSaveWallpaper}
+                onCancel={handleCancelWallpaper}
+              />
+            )}
           </div>
         </section>
 
-        <section className={`Chat${selectedChatIsGroup ? ' chat--group' : ''}`}>
+        <section  
+          className={`Chat${selectedChatIsGroup ? ' chat--group' : ''}`}
+          style={{
+            backgroundImage: wallpaperUrl
+              ? `url(${wallpaperUrl})`
+              : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
           <MessageList
             isGroup={selectedChatIsGroup}
             currentUserId={idUser}
