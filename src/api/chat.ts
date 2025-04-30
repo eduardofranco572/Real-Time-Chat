@@ -123,8 +123,13 @@ router.post('/salvarMensagem', (req: Request, res: Response) => {
 });
 
 router.post('/getMessages', (req, res) => {
-  const { idChat } = req.body;
-  const sql = `
+  const { idChat, limit = 20, beforeId } = req.body as {
+    idChat: number;
+    limit?: number;
+    beforeId?: number;
+  };
+
+  let sql = `
     SELECT 
       M.*,
       U.nome AS nomeContato,
@@ -132,20 +137,32 @@ router.post('/getMessages', (req, res) => {
     FROM chat_messages M
     JOIN usuario U ON U.id = M.idUser
     WHERE M.idChat = ?
-    ORDER BY M.id ASC
   `;
+  const params: any[] = [idChat];
 
-  db.query(sql, [idChat], (err, results: any[]) => {
+  if (typeof beforeId !== 'undefined' && beforeId !== null) {
+    sql += ' AND M.id < ?';
+    params.push(beforeId);
+  }
+
+  sql += ' ORDER BY M.id DESC LIMIT ?';
+  params.push(limit);
+  
+  db.query(sql, params, (err, results: any[]) => {
     if (err) return res.status(500).send({ error: 'Erro ao buscar mensagens' });
 
-    const messages = results.map(row => ({
-      ...row,
-      imageUrl: row.imageFilename
-        ? `/upload/imagensUser/${row.imageFilename}`
-        : '/upload/imagensUser/default.png'
-    }));
+    const messages = results
+      .reverse()
+      .map(row => ({
+        ...row,
+        imageUrl: row.imageFilename
+          ? `/upload/imagensUser/${row.imageFilename}`
+          : '/upload/imagensUser/default.png'
+      }));
 
-    res.send({ messages });
+    const hasMore = results.length === limit;
+
+    res.send({ messages, hasMore });
   });
 });
 
@@ -338,6 +355,7 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
     db.query(`SELECT nome FROM usuario WHERE id = ?`, [idUser], (err2, rows: any[]) => {
       const nomeContato = !err2 && rows.length > 0 ? rows[0].nome : 'Desconhecido';
       const newMessage = { ...newMessageBase, nomeContato };
+
       const io = req.app.get('io');
       io.emit('newMessage', newMessage);
       res.send({ message: 'Documento enviado com sucesso', id: result.insertId });
@@ -345,124 +363,5 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
   });
 });
 
-router.post('/getGroupInfo', (req, res) => {
-  const { idChat } = req.body;
-  if (!idChat) return res.status(400).send({ error: 'idChat é obrigatório' });
-  
-  const sqlGroup = `
-    SELECT idChat AS id,
-       nomeGrupo AS nome,
-       imgGrupo AS imageUrl,
-       descricaoGrupo AS descricao
-    FROM grupos
-    WHERE idChat = ?
-    LIMIT 1
-  `;
-
-  const sqlMembers = `
-    SELECT u.ID AS id,
-           u.nome AS nome,
-           u.img AS imageUrl
-    FROM chat_participants cp
-    JOIN usuario u
-      ON cp.idUser = u.ID
-    WHERE cp.idChat = ?
-  `;
-
-  db.query(sqlGroup, [idChat], (err, groupResults: any[]) => {
-    if (err) return res.status(500).send({ error: err.message });
-
-    if (groupResults.length === 0) {
-      return res.status(404).send({ error: 'Grupo não encontrado' });
-    }
-
-    const group = groupResults[0];
-    
-    if (!group.descricaoGrupo || group.descricaoGrupo.trim() === '') {
-      group.descricaoGrupo = 'Bem vindo(a) ao grupo!';
-    }
-
-    group.imageUrl = group.imageUrl
-      ? `/upload/grupo/${group.imageUrl}`
-      : '/upload/grupo/default.png';
-
-    db.query(sqlMembers, [idChat], (err2, membersResults: any[]) => {
-      if (err2) {
-        console.error('Erro ao buscar membros do grupo:', err2);
-        return res.status(500).send({ error: err2.message });
-      }
-
-      const members = membersResults.map(m => ({
-        id: m.id,
-        nome: m.nome,
-        imageUrl: m.imageUrl
-          ? `/upload/imagensUser/${m.imageUrl}`
-          : '/upload/imagensUser/default.png',
-      }));
-
-      res.send({
-        message: 'ok',
-        group,
-        members,
-      });
-    });
-  });
-});
-
-router.post('/addParticipant', (req: Request, res: Response) => {
-  const { idChat, participantIds } = req.body
-  if (!idChat || !participantIds) {
-    return res.status(400).json({ error: 'idChat e participantIds são obrigatórios' })
-  }
-
-  let ids: number[] = Array.isArray(participantIds)
-    ? participantIds.map((i: any) => Number(i))
-    : JSON.parse(participantIds).map((i: any) => Number(i))
-
-  ids = ids.filter(id => !isNaN(id))
-  if (ids.length === 0) {
-    return res.status(400).json({ error: 'Nenhum id de participante válido' })
-  }
-
-  const placeholders = ids.map(() => '(?, ?)').join(', ')
-  const values = ids.flatMap(id => [idChat, id])
-
-  const sql = `
-    INSERT IGNORE INTO chat_participants (idChat, idUser)
-    VALUES ${placeholders}
-  `
-  db.query(sql, values, err => {
-    if (err) {
-      console.error('Erro ao adicionar participantes:', err)
-      return res.status(500).json({ error: 'Erro no banco' })
-    }
-
-    const io = req.app.get('io')
-    io.emit('groupUpdated', { idChat })
-    return res.json({ message: 'Participantes adicionados com sucesso' })
-  })
-})
-
-router.post('/leaveGroup', (req: Request, res: Response) => {
-  const { idChat, idUser } = req.body
-  if (!idChat || !idUser) {
-    return res.status(400).json({ error: 'idChat e idUser são obrigatórios' })
-  }
-
-  const sql = `
-    DELETE FROM chat_participants
-    WHERE idChat = ? AND idUser = ?
-  `
-  db.query(sql, [idChat, idUser], (err, result) => {
-    if (err) {
-      console.error('Erro ao remover participante:', err)
-      return res.status(500).json({ error: 'Erro ao sair do grupo' })
-    }
-
-    const io = req.app.get('io')
-    io.emit('groupUpdated', { idChat })
-    return res.json({ message: 'Saiu do grupo com sucesso' })
-  })
-})
 
 export default router;

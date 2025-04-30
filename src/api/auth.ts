@@ -28,7 +28,9 @@ const upload = multer({ storage: storageUserImages });
 
 router.post('/cadastrar', upload.single('img'), (req: Request, res: Response) => {
   const { nome, email, senha } = req.body;
-  const imgPath = req.file ? req.file.filename : null;
+  const imgPath = req.file
+  ? req.file.filename
+  : 'iconePadrao.svg';
 
   const checkEmailSql: string = "SELECT COUNT(*) AS count FROM usuario WHERE email = ?";
   db.query(checkEmailSql, [email], (err, results) => {
@@ -69,7 +71,7 @@ router.post('/login', (req: Request, res: Response) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       });
-      console.log('Usuário logado com sucesso:', user);
+
       res.send({ message: 'ok', id: user.id });
     } else {
       res.status(401).send('Credenciais inválidas');

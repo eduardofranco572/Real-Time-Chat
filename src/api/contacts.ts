@@ -29,15 +29,13 @@ router.post('/addcontato', (req: Request, res: Response) => {
     if (!result.length) return res.status(401).send({ error: 'Usuário não encontrado' });
 
     const idContato = result[0].id;
-    // Inserir A->B
+
     const sqlInsert = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
     db.query(sqlInsert, [idUser, idContato, nome], err2 => {
       if (err2) return res.status(500).send({ error: 'Erro ao cadastrar contato' });
 
-      // Busca nome de A para registro B->A
       db.query("SELECT nome FROM usuario WHERE ID = ?", [idUser], (errN, nomeRes: any[]) => {
         const meuNome = !errN && nomeRes[0]?.nome ? nomeRes[0].nome : 'Contato';
-        // Inserir B->A
         const sqlReverse = `
           INSERT INTO contatos (idUser, idContato, nomeContato)
           VALUES (?, ?, ?)

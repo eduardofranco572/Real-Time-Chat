@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IoMdMore, IoMdSend, IoMdPhotos } from 'react-icons/io';
 import { MdAdd } from 'react-icons/md';
 import { AiFillAudio } from 'react-icons/ai';
@@ -13,9 +13,8 @@ import useRemoveContact from '../../hooks/chatHooks/useRemoveContact';
 import MessageList from './MessageList';
 import ChatMediaUploader from './ChatMediaUploader';
 import ChatDocsUploader from './ChatDocsUploader';
-import ChatDetails from './ChatDetails'
+import ChatDetails from './ChatDetails';
 import WallpaperEditor from './WallpaperEditor';
-
 
 interface ChatProps {
   selectedChatId: number;
@@ -32,7 +31,6 @@ const Chat: React.FC<ChatProps> = ({
   idUser,
   selectedChatIsGroup,
 }) => {
-
   const [message, setMessage] = useState('');
   const [replyingMessage, setReplyingMessage] = useState<any>(null);
   const [showAddCard, setShowAddCard] = useState(false);
@@ -44,23 +42,113 @@ const Chat: React.FC<ChatProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue]   = useState('');
   const chatInfo = useChatInfo(selectedChatId, idUser, selectedChatIsGroup);
-  const { messages, setMessages } = useMessages(selectedChatId);
+  const { messages, setMessages, hasMore, loadingMore, loadMore } = useMessages(
+    selectedChatId, 50
+  );
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
   const [showHeaderOptions, setShowHeaderOptions] = useState(false);
   const [showWallpaperEditor, setShowWallpaperEditor] = useState(false);
   const [wallpaperUrl, setWallpaperUrl] = useState<string | null>(null);
-  const { removeContact, loading: removing, error: removeError } = useRemoveContact();
+  const { removeContact, loading: removing } = useRemoveContact();
+
+  // refs para scroll
+  const chatRef = useRef<HTMLDivElement>(null);
+  const topRef  = useRef<HTMLDivElement>(null);
+  const prevScrollHeight = useRef(0);
+  const initialLoad = useRef(true);
+
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [newMsgIndicator, setNewMsgIndicator] = useState(false);
+
+  // detecta posição bottom
+  useEffect(() => {
+    const el = chatRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const atBottom = el.scrollHeight - (el.scrollTop + el.clientHeight) < 50;
+      setIsAtBottom(atBottom);
+      if (atBottom) setNewMsgIndicator(false);
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // reset initialLoad ao trocar chat
+  useEffect(() => {
+    initialLoad.current = true;
+  }, [selectedChatId]);
+
+  // marca prevScrollHeight quando iniciar carregamento de mensagens antigas
+  useEffect(() => {
+    if (loadingMore) {
+      const el = chatRef.current;
+      if (el) prevScrollHeight.current = el.scrollHeight;
+    }
+  }, [loadingMore]);
+
+  // gerencia scroll após mudanças em messages
+  useEffect(() => {
+    const el = chatRef.current;
+    if (!el) return;
+
+    if (initialLoad.current) {
+      el.scrollTop = el.scrollHeight;
+      setIsAtBottom(true);
+      initialLoad.current = false;
+      setNewMsgIndicator(false);
+      return;
+    }
+
+    if (!loadingMore && prevScrollHeight.current) {
+      const newHeight = el.scrollHeight;
+      el.scrollTop = newHeight - prevScrollHeight.current;
+      prevScrollHeight.current = 0;
+      return;
+    }
+
+    if (isAtBottom) {
+      el.scrollTop = el.scrollHeight;
+    } else {
+      setNewMsgIndicator(true);
+    }
+  }, [messages, loadingMore, isAtBottom]);
+
+  // auto-load sem overflow
+  useEffect(() => {
+    const el = chatRef.current;
+    if (!el) return;
+    if (!loadingMore && hasMore && el.scrollHeight <= el.clientHeight) {
+      loadMore();
+    }
+  }, [messages, loadingMore, hasMore, loadMore]);
+
+  // infinite scroll
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+    const el = chatRef.current;
+    const sentinel = topRef.current;
+    if (!el || !sentinel) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) loadMore();
+      },
+      { root: el, rootMargin: '200px 0px 0px 0px', threshold: 0 }
+    );
+    obs.observe(sentinel);
+    return () => obs.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
+
+
+  useEffect(() => {
+    const saved = localStorage.getItem('chatWallpaper');
+    if (saved) setWallpaperUrl(saved);
+  }, []);
 
   useEffect(() => {
     if (selectedChatIsGroup && groupData) {
       setNameValue(groupData.nome);
     }
   }, [selectedChatIsGroup, groupData]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('chatWallpaper');
-    if (saved) setWallpaperUrl(saved);
-  }, []);
 
   if (idUser == null) return <div>Carregando usuário…</div>;
   if (selectedChatId == null) return <div>Selecione um chat para começar.</div>;
@@ -131,7 +219,15 @@ const Chat: React.FC<ChatProps> = ({
   };
 
   return (
-    <section className='chat-container'>
+    <section className='chat-container'
+      style={{
+        backgroundImage: wallpaperUrl
+          ? `url(${wallpaperUrl})`
+          : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
       <div className='alinhaCO'>
         <section className='headerChat'>
           <div className='infosChat'>
@@ -188,24 +284,29 @@ const Chat: React.FC<ChatProps> = ({
           </div>
         </section>
 
-        <section  
-          className={`Chat${selectedChatIsGroup ? ' chat--group' : ''}`}
-          style={{
-            backgroundImage: wallpaperUrl
-              ? `url(${wallpaperUrl})`
-              : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        >
+        <section className={`Chat${selectedChatIsGroup?' chat--group':''}`} ref={chatRef}>
+          <div ref={topRef} style={{ height: 1, marginTop: -1 }} />
           <MessageList
             isGroup={selectedChatIsGroup}
-            currentUserId={idUser}
+            currentUserId={idUser!}
             messages={messages}
             setMessages={setMessages}
             onReplyMessage={handleReplyMessage}
           />
         </section>
+
+        {newMsgIndicator && (
+          <button
+            className="new-message-indicator"
+            onClick={() => {
+              const el = chatRef.current;
+              if (el) el.scrollTop = el.scrollHeight;
+              setNewMsgIndicator(false);
+            }}
+          >
+            ↓ Novas mensagens
+          </button>
+        )}
 
         {replyingMessage && (
           <div className='reply-box'>

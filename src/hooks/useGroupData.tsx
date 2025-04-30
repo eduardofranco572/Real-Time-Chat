@@ -24,7 +24,7 @@ const useGroupData = (
   const fetchGroupData = useCallback(async () => {
     if (!idChat || !isGroup) return
     try {
-      const res = await fetch(`${API_URL}/api/chat/getGroupInfo`, {
+      const res = await fetch(`${API_URL}/api/group/getGroupInfo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idChat }),
@@ -92,7 +92,7 @@ const useGroupData = (
     async (participantIds: number[]) => {
       if (!idChat || !isGroup || participantIds.length === 0) return
       try {
-        const res = await fetch(`${API_URL}/api/chat/addParticipant`, {
+        const res = await fetch(`${API_URL}/api/group/addParticipant`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idChat, participantIds }),
@@ -111,7 +111,7 @@ const useGroupData = (
     async (idUser: number) => {
       if (!idChat || !isGroup) return
       try {
-        const res = await fetch(`${API_URL}/api/chat/leaveGroup`, {
+        const res = await fetch(`${API_URL}/api/group/leaveGroup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idChat, idUser }),

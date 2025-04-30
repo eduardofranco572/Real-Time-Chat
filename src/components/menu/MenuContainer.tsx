@@ -41,6 +41,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
   const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
+  const userName = userInfo?.nome || '';
   const { items, fetchContacts } = useContacts(idUser);
   const statusImage = useUserStatus(idUser, menuState === 'abaStatus');
   const { saveStatus } = useSaveStatus(idUser);
@@ -206,6 +207,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
             <ContactList
               items={filteredItems}
+              currentUserName={userName} 
               onOpenChat={(chatId, isGroup) => onSelectContact(chatId, isGroup)}
             />
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import io from 'socket.io-client';
 import { API_URL } from '../../config';
 
@@ -18,38 +18,92 @@ export interface Message {
 
 export type SetMessages = React.Dispatch<React.SetStateAction<Message[]>>;
 
-const socket = io(`${API_URL}`);
+const socket = io(API_URL);
 
-const useMessages = (currentChatId: number | null) => {
+interface UseMessagesReturn {
+  messages: Message[];
+  setMessages: SetMessages;
+  hasMore: boolean;
+  loadingMore: boolean;
+  loadMore: () => void;
+}
+
+const useMessages = (
+  currentChatId: number | null,
+  initialLimit = 20
+): UseMessagesReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Carregar mensagens iniciais
-  useEffect(() => {
+  const beforeIdRef = useRef<number | null>(null);
+
+  const fetchInitial = useCallback(async () => {
     if (!currentChatId) return;
-    (async () => {
-      try {
-        const res = await fetch(
-          `${API_URL}/api/chat/getMessages`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idChat: currentChatId }),
-          }
+    try {
+      const res = await fetch(`${API_URL}/api/chat/getMessages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idChat: currentChatId, limit: initialLimit }),
+      });
+      const result = await res.json();
+      if (!result.messages) return;
+
+      setMessages(result.messages);
+      setHasMore(result.hasMore);
+
+      const ids = (result.messages as Message[]).map(m => m.id);
+      const minId = ids.length ? Math.min(...ids) : null;
+      
+      beforeIdRef.current = minId;
+    } catch (err) {
+      console.error('Erro ao buscar mensagens iniciais:', err);
+    }
+  }, [currentChatId, initialLimit]);
+
+  const fetchMore = useCallback(async () => {
+    if (!currentChatId || beforeIdRef.current === null) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`${API_URL}/api/chat/getMessages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idChat: currentChatId,
+          limit: initialLimit,
+          beforeId: beforeIdRef.current,
+        }),
+      });
+      const result = await res.json();
+      if (!result.messages) return;
+
+      setMessages(prev => {
+        const únicos = (result.messages as Message[]).filter(
+          m => !prev.some(x => x.id === m.id)
         );
-        const result = await res.json();
-        if (result.messages) {
-          setMessages(result.messages as Message[]);
-        }
-      } catch (err) {
-        console.error('Erro ao buscar mensagens:', err);
-      }
-    })();
-  }, [currentChatId]);
+        return [...únicos, ...prev];
+      });
+      setHasMore(result.hasMore);
 
-  //Escutar novas mensagens
+      const newIds = (result.messages as Message[]).map(m => m.id);
+      beforeIdRef.current = Math.min(beforeIdRef.current, ...newIds);
+    } catch (err) {
+      console.error('Erro ao buscar mais mensagens:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [currentChatId, initialLimit]);
+
+  useEffect(() => {
+    beforeIdRef.current = null;
+    setHasMore(true);
+    fetchInitial();
+  }, [currentChatId, fetchInitial]);
+
+  // tempo real
   useEffect(() => {
     if (!currentChatId) return;
-    const handleNewMessage = (newMessage: Message) => {
+    const handleNew = (newMessage: Message) => {
       if (newMessage.idChat !== currentChatId) return;
       setMessages(prev =>
         prev.some(m => m.id === newMessage.id)
@@ -57,38 +111,19 @@ const useMessages = (currentChatId: number | null) => {
           : [...prev, newMessage]
       );
     };
-
-    socket.on('newMessage', handleNewMessage);
+    socket.on('newMessage', handleNew);
     return () => {
-      socket.off('newMessage', handleNewMessage);
+      socket.off('newMessage', handleNew);
     };
   }, [currentChatId]);
 
-  useEffect(() => {
-    if (!currentChatId) return;
-
-    const handleDeleted = ({ id }: { id: number }) => {
-      setMessages(prev => prev.filter(m => m.id !== id));
-    };
-
-    const handleUpdated = ({ id, message }: { id: number; message: string }) => {
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === id ? { ...m, mensagem: message } : m
-        )
-      );
-    };
-
-    socket.on('messageDeleted', handleDeleted);
-    socket.on('messageUpdated', handleUpdated);
-
-    return () => {
-      socket.off('messageDeleted', handleDeleted);
-      socket.off('messageUpdated', handleUpdated);
-    };
-  }, [currentChatId]);
-
-  return { messages, setMessages };
+  return {
+    messages,
+    setMessages,
+    hasMore,
+    loadingMore,
+    loadMore: fetchMore,
+  };
 };
 
 export default useMessages;

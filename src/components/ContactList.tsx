@@ -1,5 +1,5 @@
 import React from 'react';
-// @ts-expect-error ignorar img
+// @ts-ignore
 import iconePadrao from '../assets/img/iconePadrao.svg';
 
 export interface ChatItem {
@@ -11,15 +11,16 @@ export interface ChatItem {
   lastMessageAt?: string;
   chatId: number;
   isGroup: boolean;
-  lastSenderName: string 
+  lastSenderName: string;
 }
 
 interface ContactListProps {
   items: ChatItem[];
+  currentUserName: string;
   onOpenChat: (chatId: number, isGroup: boolean) => void;  
 }
 
-const ContactList: React.FC<ContactListProps> = ({ items, onOpenChat }) => (
+const ContactList: React.FC<ContactListProps> = ({ items, currentUserName, onOpenChat }) => (
   <div className="contatos">
     {items
       .sort((a, b) => {
@@ -27,33 +28,37 @@ const ContactList: React.FC<ContactListProps> = ({ items, onOpenChat }) => (
         const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
         return tb - ta;
       })
-      .map(item => (
-        <div
-          className="contato"
-          key={`${item.isGroup ? 'group' : 'user'}-${item.id}`}
-          onClick={() => onOpenChat(item.chatId, item.isGroup)}
-        >
-          <div className="elementsCont1">
-            <img src={item.imageUrl || iconePadrao} alt={item.nome} />
-            <div className="textCont1">
-              <h1>{item.nome}</h1>
-              <p>
-                {item.mensagem
-                  ? (item.isGroup
-                      ? `${item.lastSenderName}: ${item.mensagem}`
-                      : item.mensagem)
-                  : item.mediaUrl
-                    ? (item.isGroup
-                        ? `${item.lastSenderName}: mídia enviada`
-                        : 'mídia enviada')
-                    : ''
-                }
-              </p>
+      .map(item => {
+        const sender = item.isGroup && item.lastSenderName === currentUserName
+          ? 'Você'
+          : item.lastSenderName;
+
+        const preview = item.mensagem
+          ? (item.isGroup
+              ? `${sender}: ${item.mensagem}`
+              : item.mensagem)
+          : item.mediaUrl
+            ? (item.isGroup
+                ? `${sender}: mídia enviada`
+                : 'mídia enviada')
+            : '';
+
+        return (
+          <div
+            className="contato"
+            key={`${item.isGroup ? 'group' : 'user'}-${item.chatId}`}
+            onClick={() => onOpenChat(item.chatId, item.isGroup)}
+          >
+            <div className="elementsCont1">
+              <img src={item.imageUrl || iconePadrao} alt={item.nome} />
+              <div className="textCont1">
+                <h1>{item.nome}</h1>
+                <p>{preview}</p>
+              </div>
             </div>
-            {item.isGroup}
           </div>
-        </div>
-      ))}
+        );
+      })}
   </div>
 );
 

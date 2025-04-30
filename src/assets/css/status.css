@@ -91,7 +91,7 @@
 .containerMenu{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    height: 90%;
 }
 
 .statusList {
@@ -263,7 +263,7 @@
     width: 100%;
     height: 100%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-    background-color: rgb(0 0 0 / 50%);
+    background-color: rgb(0 0 0 / 78%);
     z-index: 1;
     backdrop-filter: blur(5px);
 }

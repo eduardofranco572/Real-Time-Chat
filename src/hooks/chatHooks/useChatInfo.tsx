@@ -44,8 +44,8 @@ const useChatInfo = (
 
     try {
       const endpoint = isGroup
-        ? `${API_URL}/api/chat/getGroupInfo`
-        : `${API_URL}/api/chat/getChatInfo`
+        ? `${API_URL}/api/group/getGroupInfo`
+        : `${API_URL}/api/chat/getChatInfo` 
 
       const body = isGroup
         ? { idChat: selectedChatId }

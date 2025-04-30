@@ -205,7 +205,6 @@ function CadastroForm() {
               accept="image/*"
               onChange={handleImageUpload}
               style={{ display: 'none' }}
-              required
             />
             <input
               type="file"

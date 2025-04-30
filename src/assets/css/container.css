@@ -1138,3 +1138,14 @@
     transition: 0.2s;
     transform: scale(1.1);
 }
+
+.date-separator {
+    display: inline-block;
+    margin: 1rem auto;
+    padding: 7px;
+    font-size: 12px;
+    color: var(--color-subtitle);
+    font-weight: 500;
+    background-color: #181818;
+    border-radius: 5px;
+}
