@@ -326,23 +326,27 @@ router.post('/removeContato', (req: Request, res: Response) => {
       WHERE (idUser = ? AND idContato = ?)
          OR (idUser = ? AND idContato = ?)
     `;
-    db.query(sqlDeleteContatos, [idUser, idContato, idContato, idUser], (errDel, resultDel) => {
+    db.query(sqlDeleteContatos, [idUser, idContato, idContato, idUser], (errDel) => {
       if (errDel) {
         console.error('Erro ao remover contatos:', errDel);
         return res.status(500).json({ error: 'Erro ao remover contatos' });
       }
 
-      //em chat privado remove participantes e o chat
       if (idChat) {
-        db.query('DELETE FROM chat_participants WHERE idChat = ?', [idChat], (errP) => {
-          if (errP) console.error('Erro ao remover participantes:', errP);
-          db.query('DELETE FROM chats WHERE idChat = ?', [idChat], (errC) => {
-            if (errC) console.error('Erro ao remover chat:', errC);
+        db.query('DELETE FROM chat_messages WHERE idChat = ?', [idChat], (errMsg) => {
+          if (errMsg) console.error('Erro ao remover mensagens do chat:', errMsg);
 
-            const io = req.app.get('io');
-            io.emit('contactRemoved', { idUser, idContato });
-            io.emit('contactRemoved', { idUser: idContato, idContato: idUser });
-            return res.json({ message: 'Contato e chat removidos para ambos' });
+          db.query('DELETE FROM chat_participants WHERE idChat = ?', [idChat], (errP) => {
+            if (errP) console.error('Erro ao remover participantes:', errP);
+
+            db.query('DELETE FROM chats WHERE idChat = ?', [idChat], (errC) => {
+              if (errC) console.error('Erro ao remover chat:', errC);
+
+              const io = req.app.get('io');
+              io.emit('contactRemoved', { idUser, idContato });
+              io.emit('contactRemoved', { idUser: idContato, idContato: idUser });
+              return res.json({ message: 'Contato, chat e mensagens removidos para ambos' });
+            });
           });
         });
       } else {
