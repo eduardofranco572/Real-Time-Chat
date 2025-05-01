@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { IoMdMore, IoMdSend, IoMdPhotos } from 'react-icons/io';
 import { MdAdd } from 'react-icons/md';
 import { AiFillAudio } from 'react-icons/ai';
@@ -40,110 +40,69 @@ const Chat: React.FC<ChatProps> = ({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descValue, setDescValue] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
-  const [nameValue, setNameValue]   = useState('');
+  const [nameValue, setNameValue] = useState('');
   const chatInfo = useChatInfo(selectedChatId, idUser, selectedChatIsGroup);
-  const { messages, setMessages, hasMore, loadingMore, loadMore } = useMessages(
-    selectedChatId, 50
-  );
   const { handleSendMessage, handleSendMedia, handleSendDocs } = useChatHandlers();
   const [showHeaderOptions, setShowHeaderOptions] = useState(false);
   const [showWallpaperEditor, setShowWallpaperEditor] = useState(false);
   const [wallpaperUrl, setWallpaperUrl] = useState<string | null>(null);
   const { removeContact, loading: removing } = useRemoveContact();
+  const { messages, setMessages, hasMore, loadMore } = useMessages( selectedChatId, 50);
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  const lastIdRef = useRef<number | null>(null);
 
-  // refs para scroll
-  const chatRef = useRef<HTMLDivElement>(null);
-  const topRef  = useRef<HTMLDivElement>(null);
-  const prevScrollHeight = useRef(0);
-  const initialLoad = useRef(true);
+  // carregar mais quando estiver próximo do topo
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el || loadingRef.current || !hasMore) return;
 
-  const [isAtBottom, setIsAtBottom] = useState(true);
-  const [newMsgIndicator, setNewMsgIndicator] = useState(false);
+    if (el.scrollTop < 100) {
+      loadingRef.current = true;
+      const oldHeight = el.scrollHeight;
 
-  // detecta posição bottom
+      (async () => {
+        await loadMore();
+        const newHeight = el.scrollHeight;
+        el.scrollTop = newHeight - oldHeight + el.scrollTop;
+        loadingRef.current = false;
+      })();
+    }
+  }, [hasMore, loadMore]);
+
+  // escutador do scroll
   useEffect(() => {
-    const el = chatRef.current;
+    if (!chatInfo) return; 
+    const el = containerRef.current;
     if (!el) return;
-    const onScroll = () => {
-      const atBottom = el.scrollHeight - (el.scrollTop + el.clientHeight) < 50;
-      setIsAtBottom(atBottom);
-      if (atBottom) setNewMsgIndicator(false);
+  
+    el.addEventListener('scroll', handleScroll);
+    return () => {
+      el.removeEventListener('scroll', handleScroll);
     };
-    el.addEventListener('scroll', onScroll);
-    return () => el.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [selectedChatId, handleScroll, chatInfo]);
 
-  // reset initialLoad ao trocar chat
+  // auto-scroll para o fim
   useEffect(() => {
-    initialLoad.current = true;
-  }, [selectedChatId]);
-
-  // marca prevScrollHeight quando iniciar carregamento de mensagens antigas
-  useEffect(() => {
-    if (loadingMore) {
-      const el = chatRef.current;
-      if (el) prevScrollHeight.current = el.scrollHeight;
-    }
-  }, [loadingMore]);
-
-  // gerencia scroll após mudanças em messages
-  useEffect(() => {
-    const el = chatRef.current;
-    if (!el) return;
-
-    if (initialLoad.current) {
+    const el = containerRef.current;
+    if (!el || messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+  
+    if (lastIdRef.current === null || lastMessage.id !== lastIdRef.current) {
       el.scrollTop = el.scrollHeight;
-      setIsAtBottom(true);
-      initialLoad.current = false;
-      setNewMsgIndicator(false);
-      return;
     }
+  
+    lastIdRef.current = lastMessage.id;
+  }, [messages]);
 
-    if (!loadingMore && prevScrollHeight.current) {
-      const newHeight = el.scrollHeight;
-      el.scrollTop = newHeight - prevScrollHeight.current;
-      prevScrollHeight.current = 0;
-      return;
-    }
-
-    if (isAtBottom) {
-      el.scrollTop = el.scrollHeight;
-    } else {
-      setNewMsgIndicator(true);
-    }
-  }, [messages, loadingMore, isAtBottom]);
-
-  // auto-load sem overflow
-  useEffect(() => {
-    const el = chatRef.current;
-    if (!el) return;
-    if (!loadingMore && hasMore && el.scrollHeight <= el.clientHeight) {
-      loadMore();
-    }
-  }, [messages, loadingMore, hasMore, loadMore]);
-
-  // infinite scroll
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-    const el = chatRef.current;
-    const sentinel = topRef.current;
-    if (!el || !sentinel) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) loadMore();
-      },
-      { root: el, rootMargin: '200px 0px 0px 0px', threshold: 0 }
-    );
-    obs.observe(sentinel);
-    return () => obs.disconnect();
-  }, [hasMore, loadingMore, loadMore]);
-
-
+  // load wallpaper
   useEffect(() => {
     const saved = localStorage.getItem('chatWallpaper');
     if (saved) setWallpaperUrl(saved);
   }, []);
 
+  // sync group name
   useEffect(() => {
     if (selectedChatIsGroup && groupData) {
       setNameValue(groupData.nome);
@@ -284,8 +243,7 @@ const Chat: React.FC<ChatProps> = ({
           </div>
         </section>
 
-        <section className={`Chat${selectedChatIsGroup?' chat--group':''}`} ref={chatRef}>
-          <div ref={topRef} style={{ height: 1, marginTop: -1 }} />
+        <section className={`Chat${selectedChatIsGroup ? ' chat--group' : ''}`} ref={containerRef}>
           <MessageList
             isGroup={selectedChatIsGroup}
             currentUserId={idUser!}
@@ -294,19 +252,6 @@ const Chat: React.FC<ChatProps> = ({
             onReplyMessage={handleReplyMessage}
           />
         </section>
-
-        {newMsgIndicator && (
-          <button
-            className="new-message-indicator"
-            onClick={() => {
-              const el = chatRef.current;
-              if (el) el.scrollTop = el.scrollHeight;
-              setNewMsgIndicator(false);
-            }}
-          >
-            ↓ Novas mensagens
-          </button>
-        )}
 
         {replyingMessage && (
           <div className='reply-box'>
@@ -333,6 +278,7 @@ const Chat: React.FC<ChatProps> = ({
             onClose={() => setShowMediaUploader(false)}
           />
         )}
+
         {showDocsUploader && (
           <ChatDocsUploader
             onSendMedia={onSendDocs}
