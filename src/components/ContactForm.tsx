@@ -1,6 +1,6 @@
 import React, { FormEvent, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { IoMdClose } from "react-icons/io";
+import { IoMdClose } from 'react-icons/io';
 import Select from 'react-select';
 
 //@ts-expect-error ignorar img
@@ -55,16 +55,17 @@ const ContactForm: React.FC<ContactFormProps> = ({
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [croppedImageFile, setCroppedImageFile] = useState<File>();
   const [selectedParticipants, setSelectedParticipants] = useState<ContactOption[]>([]);
+  const [groupStep, setGroupStep] = useState<number>(1);
 
   const options: ContactOption[] = contacts
     .filter((c: ChatItem) => !c.isGroup)
     .map((c: ChatItem) => ({ value: c.id, label: c.nome, avatar: c.imageUrl || iconePadrao }));
 
-  const handleImageClick = useCallback(() => {
+  const handleImageClick = () => {
     document.getElementById('group-img-input')?.click();
-  }, []);
+  };
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -73,16 +74,20 @@ const ContactForm: React.FC<ContactFormProps> = ({
       setIsEditingImage(true);
     };
     reader.readAsDataURL(file);
-  }, []);
+  };
 
-  const handleSaveImage = useCallback((file: File) => {
+  const handleSaveImage = (file: File) => {
     setCroppedImageFile(file);
     setIsEditingImage(false);
-  }, []);
+  };
 
-  const handleCancelImage = useCallback(() => {
+  const handleCancelImage = () => {
     setIsEditingImage(false);
-  }, []);
+  };
+
+  const handleNext = () => {
+    setGroupStep(2);
+  };
 
   const modalContent = (
     <section className='popUpCadastrar'>
@@ -99,7 +104,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 <p>Preencha os dados abaixo para adicionar um novo contato à sua lista.</p>
               </div>
             </div>
-            
             <form className='formPp' onSubmit={onSubmitContact}>
               <div className='elementosFormPp'>
                 <p className='titlesInput'>Email</p>
@@ -138,70 +142,81 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 <p>Preencha os dados abaixo para criar um novo grupo.</p>
               </div>
             </div>
-            <div className="fotoGrupo" onClick={handleImageClick} style={{ cursor: 'pointer' }}>
-              {croppedImageFile ? (
-                <img src={URL.createObjectURL(croppedImageFile)} alt="Foto do grupo" />
-              ) : (
-                <div className="contenerimg">
-                  <img className="imgPadraoGroup" src={iconePadrao} alt="Ícone Padrão" />
+
+            {groupStep === 1 && (
+              <form className='formPp'>
+                <div className='elementosFormPp'>
+                  <p className='titlesInput'>Selecione participantes</p>
+                  <Select
+                    className="my-select"
+                    classNamePrefix="my-select"
+                    maxMenuHeight={400}
+                    options={options}
+                    isMulti
+                    placeholder="Filtre e selecione..."
+                    onChange={items =>
+                      setSelectedParticipants(Array.isArray(items) ? items : [items])
+                    }
+                    formatOptionLabel={({ label, avatar }) => (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <img
+                          src={avatar}
+                          alt={label}
+                          style={{ width: 24, height: 24, borderRadius: '50%', marginRight: 8 }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    )}
+                    getOptionValue={opt => String(opt.value)}
+                  />
                 </div>
-              )}
-              <input
-                id="group-img-input"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-            </div>
-            <form
-              className='formPp'
-              onSubmit={e => onSubmitGroup(
-                e,
-                croppedImageFile,
-                selectedParticipants.map(v => v.value)
-              )}
-            >
-              <div className='elementosFormPp'>
-                <p className='titlesInput'>Nome do Grupo</p>
-                <input
-                  className="inputFP"
-                  type="text"
-                  value={groupName}
-                  onChange={e => setGroupName(e.target.value)}
-                  placeholder="Digite o nome do grupo"
-                  required
-                />
-              </div>
-              <div className='elementosFormPp'>
-                <p className='titlesInput'>Selecione participantes</p>
-                <Select
-                  className="my-select"
-                  classNamePrefix="my-select"
-                  maxMenuHeight={400}
-                  options={options}
-                  isMulti
-                  placeholder="Filtre e selecione..."
-                  onChange={items =>
-                    setSelectedParticipants(Array.isArray(items) ? items : [items])
-                  }
-                  formatOptionLabel={({ label, avatar }) => (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <img
-                        src={avatar}
-                        alt={label}
-                        style={{ width: 24, height: 24, borderRadius: '50%', marginRight: 8 }}
-                      />
-                      <span>{label}</span>
+                <div className="btnAddContato">
+                  <button type="button" onClick={handleNext}>Próximo</button>
+                </div>
+              </form>
+            )}
+
+            {groupStep === 2 && (
+              <form
+                className='formPp'
+                onSubmit={e => onSubmitGroup(
+                  e,
+                  croppedImageFile,
+                  selectedParticipants.map(v => v.value)
+                )}
+              >
+                <div className="fotoGrupo" onClick={handleImageClick} style={{ cursor: 'pointer' }}>
+                  {croppedImageFile ? (
+                    <img src={URL.createObjectURL(croppedImageFile)} alt="Foto do grupo" />
+                  ) : (
+                    <div className="contenerimg">
+                      <img className="imgPadraoGroup" src={iconePadrao} alt="Ícone Padrão" />
                     </div>
                   )}
-                  getOptionValue={opt => String(opt.value)}
-                />
-              </div>
-              <div className="btnAddContato">
-                <input type="submit" value="Adicionar Grupo" />
-              </div>
-            </form>
+                  <input
+                    id="group-img-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+                <div className='elementosFormPp'>
+                  <p className='titlesInput'>Nome do Grupo</p>
+                  <input
+                    className="inputFP"
+                    type="text"
+                    value={groupName}
+                    onChange={e => setGroupName(e.target.value)}
+                    placeholder="Digite o nome do grupo"
+                    required
+                  />
+                </div>
+                <div className="btnAddContato">
+                  <input type="submit" value="Adicionar Grupo" />
+                </div>
+              </form>
+            )}
           </div>
         )}
       </div>

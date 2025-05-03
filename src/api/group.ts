@@ -47,6 +47,9 @@ router.post('/addGroup', upload.single('imgGrupo'), (req: Request, res: Response
 
         db.query(sqlInsertParts, values, err3 => {
             if (err3) return res.status(500).json({ error: 'Erro ao adicionar participantes' });
+            
+            const io = req.app.get('io');
+            io.emit('newGroup', { idChat, nomeGrupo });
             return res.json({ message: 'Grupo criado com sucesso', idChat, idGrupo });
         });
     });

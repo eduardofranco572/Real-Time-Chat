@@ -70,6 +70,7 @@ const useContacts = (idUser: number | string | null) => {
 
     const handlers: Record<string, (data?: any) => void> = {
       newMessage: () => fetchContacts(),
+      newGroup: () => fetchContacts(),
       groupUpdated: () => fetchContacts(),
       contactRemoved: data => {
         if (data.idUser?.toString() === idUser.toString()) {
