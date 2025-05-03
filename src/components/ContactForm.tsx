@@ -1,8 +1,6 @@
 import React, { FormEvent, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { IoMdClose } from "react-icons/io";
-import { IoMdPersonAdd } from "react-icons/io";
-import { FaUserGroup, FaArrowLeftLong } from "react-icons/fa6";
 import Select from 'react-select';
 
 //@ts-expect-error ignorar img
@@ -22,6 +20,7 @@ interface ContactOption {
 }
 
 interface ContactFormProps {
+  mode: 'contact' | 'group';
   onClose: () => void;
   onSubmitContact: (e: FormEvent<HTMLFormElement>) => Promise<void>;
   onSubmitGroup: (
@@ -38,6 +37,7 @@ interface ContactFormProps {
 }
 
 const ContactForm: React.FC<ContactFormProps> = ({
+  mode,
   onClose,
   onSubmitContact,
   onSubmitGroup,
@@ -51,96 +51,47 @@ const ContactForm: React.FC<ContactFormProps> = ({
   const idUser = useUserId();
   const { items: contacts } = useContacts(idUser);
 
-  const [isContactVisible, setIsContactVisible] = useState(false);
-  const [isGroupVisible, setIsGroupVisible] = useState(false);
-  const [isOptionsVisible, setIsOptionsVisible] = useState(true);
+  const [rawImageData, setRawImageData] = useState<string>('');
+  const [isEditingImage, setIsEditingImage] = useState(false);
+  const [croppedImageFile, setCroppedImageFile] = useState<File>();
+  const [selectedParticipants, setSelectedParticipants] = useState<ContactOption[]>([]);
 
-  const [groupSelectedImage, setGroupSelectedImage] = useState<string>('');
-  const [isEditingGroupImage, setIsEditingGroupImage] = useState(false);
-  const [croppedGroupImageFile, setCroppedGroupImageFile] = useState<File>();
+  const options: ContactOption[] = contacts
+    .filter((c: ChatItem) => !c.isGroup)
+    .map((c: ChatItem) => ({ value: c.id, label: c.nome, avatar: c.imageUrl || iconePadrao }));
 
-  const [selectValue, setSelectValue] = useState<ContactOption[]>([]);
-
-  const handleBtnContactOpen = useCallback(() => {
-    setIsContactVisible(true);
-    setIsOptionsVisible(false);
-  }, []);
-
-  const handleBtnGroupOpen = useCallback(() => {
-    setIsGroupVisible(true);
-    setIsOptionsVisible(false);
-  }, []);
-
-  const handleOptions = useCallback(() => {
-    setIsContactVisible(false);
-    setIsGroupVisible(false);
-    setIsOptionsVisible(true);
-  }, []);
-
-  const handleGroupPhotoClick = useCallback(() => {
+  const handleImageClick = useCallback(() => {
     document.getElementById('group-img-input')?.click();
   }, []);
 
-  const handleGroupImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
-      setGroupSelectedImage(ev.target?.result as string);
-      setIsEditingGroupImage(true);
+      setRawImageData(ev.target?.result as string);
+      setIsEditingImage(true);
     };
     reader.readAsDataURL(file);
   }, []);
 
-  const handleSaveGroupImage = useCallback((file: File) => {
-    setCroppedGroupImageFile(file);
-    setIsEditingGroupImage(false);
+  const handleSaveImage = useCallback((file: File) => {
+    setCroppedImageFile(file);
+    setIsEditingImage(false);
   }, []);
 
-  const handleCancelGroupImageEdit = useCallback(() => {
-    setIsEditingGroupImage(false);
+  const handleCancelImage = useCallback(() => {
+    setIsEditingImage(false);
   }, []);
-
-  // Mapeia contatos para opções do select
-  const options: ContactOption[] = contacts
-  .filter((c: ChatItem) => !c.isGroup)
-  .map((c: ChatItem) => ({
-    value: c.id,
-    label: c.nome,
-    avatar: c.imageUrl || iconePadrao
-  }));
 
   const modalContent = (
     <section className='popUpCadastrar'>
       <div className='itensPopUpC'>
         <div className='btnCloseAdd'>
-          <button onClick={handleOptions}><FaArrowLeftLong /></button>
           <button onClick={onClose}><IoMdClose /></button>
         </div>
 
-        {isOptionsVisible && (
-          <>
-            <div className='headerPUCad'>
-              <img src={IconeAddcontact} alt="" />
-              <div className='infosHPUCad'>
-                <h1>Adicione um novo contato!</h1>
-                <p>Preencha os dados abaixo para adicionar um novo contato à sua lista.</p>
-              </div>
-            </div>
-            <div className='barraPp'><span /></div>
-            <div className='optionsAdd'>
-              <div className='alinhaOptionsAdd'>
-                <button onClick={handleBtnContactOpen}>
-                  <IoMdPersonAdd /> Novo Contato
-                </button>
-                <button onClick={handleBtnGroupOpen}>
-                  <FaUserGroup /> Novo Grupo
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {isContactVisible && (
+        {mode === 'contact' && (
           <div className='containerAdd'>
             <div className='headerPUCad'>
               <div className='infosHPUCad'>
@@ -148,13 +99,13 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 <p>Preencha os dados abaixo para adicionar um novo contato à sua lista.</p>
               </div>
             </div>
+            
             <form className='formPp' onSubmit={onSubmitContact}>
               <div className='elementosFormPp'>
                 <p className='titlesInput'>Email</p>
                 <input
                   className="inputFP"
                   type="email"
-                  name="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="Digite o email do contato"
@@ -166,7 +117,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 <input
                   className="inputFP"
                   type="text"
-                  name="nome"
                   value={nome}
                   onChange={e => setNome(e.target.value)}
                   placeholder="Digite o nome do contato"
@@ -180,64 +130,60 @@ const ContactForm: React.FC<ContactFormProps> = ({
           </div>
         )}
 
-        {isGroupVisible && (
+        {mode === 'group' && (
           <div className='containerAdd'>
+            <div className='headerPUCad'>
+              <div className='infosHPUCad'>
+                <h1>Crie um novo Grupo!</h1>
+                <p>Preencha os dados abaixo para criar um novo grupo.</p>
+              </div>
+            </div>
+            <div className="fotoGrupo" onClick={handleImageClick} style={{ cursor: 'pointer' }}>
+              {croppedImageFile ? (
+                <img src={URL.createObjectURL(croppedImageFile)} alt="Foto do grupo" />
+              ) : (
+                <div className="contenerimg">
+                  <img className="imgPadraoGroup" src={iconePadrao} alt="Ícone Padrão" />
+                </div>
+              )}
+              <input
+                id="group-img-input"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
+            </div>
             <form
               className='formPp'
               onSubmit={e => onSubmitGroup(
                 e,
-                croppedGroupImageFile,
-                selectValue.map(v => v.value)
+                croppedImageFile,
+                selectedParticipants.map(v => v.value)
               )}
             >
-              <div className='headerPUCad'>
-                <div className='infosHPUCad'>
-                  <h1>Crie um novo Grupo!</h1>
-                  <p>Preencha os dados abaixo para criar um novo grupo.</p>
-                </div>
-              </div>
-
-              <div className="fotoGrupo" onClick={handleGroupPhotoClick} style={{ cursor: 'pointer' }}>
-                {croppedGroupImageFile ? (
-                  <img src={URL.createObjectURL(croppedGroupImageFile)} alt="Foto do grupo" />
-                ) : (
-                  <div className="contenerimg">
-                    <img className="imgPadraoGroup" src={iconePadrao} alt="Ícone Padrão" />
-                  </div>
-                )}
-                <input
-                  id="group-img-input"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleGroupImageUpload}
-                  style={{ display: 'none' }}
-                />
-              </div>
-
               <div className='elementosFormPp'>
                 <p className='titlesInput'>Nome do Grupo</p>
                 <input
                   className="inputFP"
                   type="text"
-                  name="groupName"
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
                   placeholder="Digite o nome do grupo"
                   required
                 />
               </div>
-
               <div className='elementosFormPp'>
                 <p className='titlesInput'>Selecione participantes</p>
                 <Select
                   className="my-select"
                   classNamePrefix="my-select"
-                  maxMenuHeight={400} 
+                  maxMenuHeight={400}
                   options={options}
                   isMulti
                   placeholder="Filtre e selecione..."
                   onChange={items =>
-                    setSelectValue(Array.isArray(items) ? items : [items])
+                    setSelectedParticipants(Array.isArray(items) ? items : [items])
                   }
                   formatOptionLabel={({ label, avatar }) => (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -252,7 +198,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
                   getOptionValue={opt => String(opt.value)}
                 />
               </div>
-
               <div className="btnAddContato">
                 <input type="submit" value="Adicionar Grupo" />
               </div>
@@ -265,14 +210,13 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <>
-      {isEditingGroupImage && groupSelectedImage && (
+      {isEditingImage && rawImageData && (
         <GroupImageEditor
-          image={groupSelectedImage}
-          onSave={handleSaveGroupImage}
-          onCancel={handleCancelGroupImageEdit}
+          image={rawImageData}
+          onSave={handleSaveImage}
+          onCancel={handleCancelImage}
         />
       )}
-
       {createPortal(modalContent, document.body)}
     </>
   );

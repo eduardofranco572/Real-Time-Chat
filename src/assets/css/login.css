@@ -2,16 +2,24 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
     height: 100vh !important;
 }
 
+.backgroundLogin{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60%;
+    background-image: url(/src/assets/img/bakground.png);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
 .conteinerCadastrar, .conteinerLogar{
-    height: 34rem;
-    width: 29rem;
+    height: 100%;
+    width: 40%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border-radius: 2rem;
-    padding: 1rem;
-    border: 2px solid rgba(255, 255, 255, .25);
     background-color: rgb(0 0 0 / 50%);
     backdrop-filter: blur(5px);
     -webkit-box-shadow: 11px 22px 57px -26px rgb(255 255 255 / 22%);
@@ -24,8 +32,8 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem;
     height: 100%;
+    width: 100%;
 }
 
 .titleForm{
@@ -44,7 +52,7 @@ body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
 }
 
 .inputinfos{
-    width: 22rem;
+    width: 100%;
     padding: 10px;
     border-radius: 0.5rem;
     border: 2px solid white;
@@ -143,8 +151,7 @@ input:focus {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: end;
 }
 
 .edtImage{
@@ -231,4 +238,12 @@ input[type='range']::-webkit-slider-thumb {
     font-size: 34px;
     cursor: pointer;
     user-select: none;
+}
+
+
+.alingInputsFormLogin{
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }

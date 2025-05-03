@@ -96,13 +96,11 @@ const Chat: React.FC<ChatProps> = ({
     lastIdRef.current = lastMessage.id;
   }, [messages]);
 
-  // load wallpaper
   useEffect(() => {
     const saved = localStorage.getItem('chatWallpaper');
     if (saved) setWallpaperUrl(saved);
   }, []);
 
-  // sync group name
   useEffect(() => {
     if (selectedChatIsGroup && groupData) {
       setNameValue(groupData.nome);

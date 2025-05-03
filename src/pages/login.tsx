@@ -82,52 +82,55 @@ function LoginForm() {
     
   return (
     <>
-      <section className='conteinerLogar'>
-        <form className="formLogin" encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit} 
-        >
-            <h1 className='titleForm'>Entrar</h1>
-            <p className='subtitleFormLogin'>Bem vindo de volta! Para continuar conectado, faça login com suas informações.</p>
-            <input
-                className="inputinfos"
-                type="email"
-                name="email"
-                placeholder="Digite seu email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            <input
-                className="inputinfos"
-                type="password"
-                name="senha"
-                placeholder="Digite sua Senha"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                required
-            />
+        <section className='backgroundLogin'></section>
+        <section className='conteinerLogar'>
+            <form className="formLogin" encType="multipart/form-data" method="post" action="" onSubmit={handleSubmit} 
+            >
+                <h1 className='titleForm'>Entrar</h1>
+                <p className='subtitleFormLogin'>Bem vindo de volta! Para continuar conectado, faça login com suas informações.</p>
+                <div className='alingInputsFormLogin'>
+                    <input
+                        className="inputinfos"
+                        type="email"
+                        name="email"
+                        placeholder="Digite seu email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <input
+                        className="inputinfos"
+                        type="password"
+                        name="senha"
+                        placeholder="Digite sua Senha"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        required
+                    />
 
-            <div className="recuperaSenha">
-                <div className="buttoncadastro">
-                    <button>Esqueceu a senha?</button>
+                    <div className="recuperaSenha">
+                        <div className="buttoncadastro">
+                            <button>Esqueceu a senha?</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+                
 
-            <div className="button">
-                <input type="submit" value="Entrar" />
-            </div>
-
-            <div className="cadastro">
-                <p> É novo por aqui?</p>
-                <div className="buttoncadastro">
-                    <Link to={`/cadastrar`}><button>Cadastre-se</button></Link>
+                <div className="button">
+                    <input type="submit" value="Entrar" />
                 </div>
-                <Routes>
-                    <Route path='/cadastrar' element={<CadastroForm/>}/>
-                </Routes>
-            </div>
-        </form>
 
-      </section>
+                <div className="cadastro">
+                    <p> É novo por aqui?</p>
+                    <div className="buttoncadastro">
+                        <Link to={`/cadastrar`}><button>Cadastre-se</button></Link>
+                    </div>
+                    <Routes>
+                        <Route path='/cadastrar' element={<CadastroForm/>}/>
+                    </Routes>
+                </div>
+            </form>
+        </section>
      
     </>
   )

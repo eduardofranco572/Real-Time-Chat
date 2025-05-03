@@ -30,7 +30,6 @@ interface MenuContainerProps {
 }
 
 const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
-  const [isFormVisible, setIsFormVisible] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [groupName, setGroupName] = useState('');
@@ -38,6 +37,8 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const [isUploaderVisible, setUploaderVisible] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formType, setFormType] = useState<'contact' | 'group' | null>(null);
+  const [showAddCard, setShowAddCard] = useState(false);
 
   const idUser = useUserId();
   const userInfo = useUserInfo(idUser);
@@ -48,20 +49,13 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
   const addContact = useAddContact(idUser, fetchContacts);
   const { addGroup } = useAddGroup(idUser);
 
-  const handleBtnClose = useCallback(() => {
-    setIsFormVisible(false);
-  }, []);
-  const handleBtnOpen = useCallback(() => {
-    setIsFormVisible(true);
-  }, []);
-
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       await addContact(email, nome);
       setEmail('');
       setNome('');
-      setIsFormVisible(false);
+      setFormType(null);
     },
     [email, nome, addContact]
   );
@@ -71,7 +65,7 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
       e.preventDefault();
       await addGroup(groupName, imageFile, participantIds || []);
       setGroupName('');
-      setIsFormVisible(false);
+      setFormType(null);
     },
     [groupName]
   );
@@ -95,6 +89,20 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
     i.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const openContactForm = useCallback(() => {
+    setFormType('contact');
+    setShowAddCard(false);
+  }, []);
+
+  const openGroupForm = useCallback(() => {
+    setFormType('group');
+    setShowAddCard(false);
+  }, []);
+
+  const closeForm = useCallback(() => {
+    setFormType(null);
+  }, []);
+
   useEffect(() => {
     const handleNewMsg = () => {
       fetchContacts();
@@ -107,9 +115,10 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
 
   return (
     <> 
-      {isFormVisible && (
+      {formType && (
         <ContactForm
-          onClose={handleBtnClose}
+          mode={formType}
+          onClose={closeForm}
           onSubmitContact={handleSubmit}
           onSubmitGroup={handleSubmitGroup}
           email={email}
@@ -213,7 +222,16 @@ const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
           </div>
 
           <div className="footerMenu">
-            <span onClick={handleBtnOpen}><IoIosAddCircle /></span>
+            {showAddCard && (
+              <div className="add-options-card optionsAddMenu">
+                <button onClick={openContactForm}>Adicionar Contato</button>
+                <button onClick={openGroupForm}>Adicionar Grupo</button>
+              </div>
+            )}
+
+            <span onClick={() => setShowAddCard(prev => !prev)}>
+              <IoIosAddCircle />
+            </span>
           </div>
         </div>
       )}
