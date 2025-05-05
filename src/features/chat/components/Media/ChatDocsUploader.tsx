@@ -60,17 +60,19 @@ const ChatDocsUploader: React.FC<ChatDocsUploaderProps> = ({ onSendMedia, onClos
               <img className='docsImg' src={docs} alt="Pré-visualização do documento" />
               <h1>{selectedFile.name}</h1>
             </div>
-            <div className="legenda">
-              <input
-                className="inputinfos"
-                type="text"
-                placeholder="Digite uma mensagem"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-              />
-            </div>
-            <div className="btnPostar">
-              <button onClick={handleSend}>Enviar</button>
+            <div className='alingFooterUploader'>
+              <div className="legenda">
+                <input
+                  className="inputinfos"
+                  type="text"
+                  placeholder="Digite uma mensagem"
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                />
+              </div>
+              <div className="btnPostar">
+                <button onClick={handleSend}>Enviar</button>
+              </div>
             </div>
           </div>
         </div>

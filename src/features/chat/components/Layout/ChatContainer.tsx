@@ -27,6 +27,7 @@ interface ChatContainerProps {
   isGroup: boolean;
   showContactDetails: boolean;
   setShowContactDetails: React.Dispatch<React.SetStateAction<boolean>>;
+  onBackMobile?: () => void;
 }
 
 const socket = io(API_URL);
@@ -36,7 +37,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   userId,
   isGroup,
   showContactDetails,
-  setShowContactDetails
+  setShowContactDetails,
+  onBackMobile
 }) => {
   const [ui, dispatch] = useReducer(
     uiReducer,
@@ -92,7 +94,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
          backgroundPosition: 'center' 
       }}
     >
-      <div className="alinhaCO">
+      <div className={`alinhaCO ${showContactDetails ? 'hidden' : ''}`}>
         <section className="headerChat">
           <ChatHeader
             chatInfo={chatInfo}
@@ -102,6 +104,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
             onToggleWallpaperEditor={() => dispatch({ type: 'TOGGLE_WALLPAPER_EDITOR' })}
             onRemoveContact={() => removeContact(userId!, chatInfo.id)}
             showOptions={ui.showHeaderOptions}
+            onBackMobile={onBackMobile!}
           />
         </section>
 

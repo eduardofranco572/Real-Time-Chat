@@ -30,7 +30,6 @@ export interface MenuContainerProps {
 }
 
 const MenuContainer: React.FC<MenuContainerProps> = ({ onSelectContact }) => {
-  //estados do menu 
   const [menuState, setMenuState] = useState<'principal' | 'status' | 'account'>(
     'principal'
   )

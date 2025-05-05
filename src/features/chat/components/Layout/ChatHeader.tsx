@@ -1,5 +1,6 @@
 import React from 'react'
 import { IoMdMore } from 'react-icons/io'
+import { FaArrowLeft } from "react-icons/fa";
 import { ChatInfo } from '../../types'
 
 interface ChatHeaderProps {
@@ -10,6 +11,7 @@ interface ChatHeaderProps {
   onToggleWallpaperEditor: () => void
   onRemoveContact: () => void
   showOptions: boolean
+  onBackMobile: () => void
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -20,9 +22,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onToggleWallpaperEditor,
   onRemoveContact,
   showOptions,
+  onBackMobile
 }) => (
   <section className="headerChat">
     <div className="infosChat">
+      <div className="voltarMobile" onClick={onBackMobile}>
+        <FaArrowLeft />
+      </div>
       <div className="IconeContatoChat" onClick={onToggleDetails}>
         <img src={chatInfo.imageUrl} alt={chatInfo.nome} />
       </div>

@@ -203,6 +203,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 80%;
+    max-width: 25rem;
 }
 
 .containerAdd{
@@ -217,6 +219,7 @@
 
 .elementosFormPp{
     margin-top: 1rem;
+    width: 80%;
 }
 
 .inputFP{
@@ -536,11 +539,11 @@
     color: white !important;
 }
 .my-select__control {
-    width: 23rem;
+    width: 100%;
 }
 
 .my-select__menu {
-    width: 23rem;
+    width: 100%;
 }
 
 .optionsAddMenu {

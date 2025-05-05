@@ -37,7 +37,6 @@ export default function useChatInfo(
 
     const handleChatUpdated = (payload: { idChat: number | string }) => {
       const updatedId = typeof payload.idChat === 'string' ? Number(payload.idChat) : payload.idChat
-      console.log('[useChatInfo] chatUpdated payload idChat:', updatedId)
       if (updatedId === chatId) {
         fetchInfo()
       }

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { IoMdPhotos, IoMdSend } from 'react-icons/io'
 import { IoDocumentText } from 'react-icons/io5'
 import { MdAdd } from 'react-icons/md'
+import { AiFillAudio } from 'react-icons/ai';
 import ChatMediaUploader from '../Media/ChatMediaUploader'
 import ChatDocsUploader from '../Media/ChatDocsUploader'
 
@@ -80,6 +81,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({
         />
 
         <div className="topico2">
+          <AiFillAudio />
           <IoMdSend
             onClick={handleSend}
             style={{ opacity: sending ? 0.5 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}

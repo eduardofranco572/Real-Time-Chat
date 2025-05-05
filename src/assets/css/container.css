@@ -78,7 +78,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 13rem; 
+    max-width: 30rem; 
 }
 
 .opcoesChat{
@@ -627,8 +627,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    display: flex;
-    align-items: flex-start;
     background-color: #a3a3a329;
     padding: 14px;
     border-radius: 5px;
@@ -1114,7 +1112,7 @@
 }
 
 .wallpaper-editor-content input {
-    width: 22rem;
+    width: 100%;
     padding: 9px;
     border-radius: 3px;
     border: none;
@@ -1148,4 +1146,17 @@
     font-weight: 500;
     background-color: #181818;
     border-radius: 5px;
+}
+
+
+.voltarMobile{
+    display: none;
+    margin-left: 0.5rem;
+    padding: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.alingFooterUploader{
+    width: 100%;
 }
