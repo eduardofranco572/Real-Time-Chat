@@ -1,21 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import useUserId from './useUserId';
-import { API_URL } from '../config';
-
-export interface Status {
-  id: number;
-  idContato: number;
-  idAutor: number;
-  nomeContato: string;
-  imgStatus?: string;
-  legenda?: string;
-  [key: string]: any;
-}
+import {
+  fetchMyStatusesService,
+  fetchContactStatusesService,
+  Status
+} from '../features/status/services/statusService';
 
 interface UseStatusResult {
-  statuses: Status[];               
+  statuses: Status[];
   refreshStatuses: () => Promise<void>;
-  contactStatuses: Status[];        
+  contactStatuses: Status[];
+  setContactStatuses: (sts: Status[]) => void;
   contactName: string | null;
   fetchContactStatuses: (idContato: number, nomeContato: string) => Promise<void>;
   clearContactStatuses: () => void;
@@ -32,47 +27,38 @@ const useStatus = (): UseStatusResult => {
 
   const idUser = useUserId();
 
-  // Carrega statuses do usuário
   const refreshStatuses = useCallback(async () => {
     if (!idUser) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/status/getStatus/${idUser}`);
-      const data = await res.json();
-      if (data.message === 'ok') {
-        setStatuses(data.statuses || []);
-      } else {
-        throw new Error(data.error || `Status ${res.status}`);
-      }
-    } catch (err) {
+      const all = await fetchMyStatusesService(idUser);
+      setStatuses(all);
+    } catch (err: any) {
       console.error('useStatus.refreshStatuses:', err);
-      setError(err instanceof Error ? err.message : String(err));
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   }, [idUser]);
 
-  // Carrega statuses de um contato
-  const fetchContactStatuses = useCallback(async (idContato: number, nomeContato: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API_URL}/api/status/getUserStatuses/${idContato}`);
-      const data = await res.json();
-      if (res.ok && data.statuses) {
-        setContactStatuses(data.statuses);
+  const fetchContactStatuses = useCallback(
+    async (idContato: number, nomeContato: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const all = await fetchContactStatusesService(idContato);
+        setContactStatuses(all);
         setContactName(nomeContato);
-      } else {
-        throw new Error(data.error || `Status ${res.status}`);
+      } catch (err: any) {
+        console.error('useStatus.fetchContactStatuses:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('useStatus.fetchContactStatuses:', err);
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const clearContactStatuses = useCallback(() => {
     setContactStatuses([]);
@@ -88,6 +74,7 @@ const useStatus = (): UseStatusResult => {
     statuses,
     refreshStatuses,
     contactStatuses,
+    setContactStatuses,
     contactName,
     fetchContactStatuses,
     clearContactStatuses,

@@ -3,9 +3,8 @@ import '../assets/css/login.css'
 import React, { FormEvent, useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import ProfileImageEditor from '../components/ProfileImageEditor';
+import ProfileImageEditor from '../features/ProfileImageEditor';
 
-//@ts-expect-error ignorar img
 import iconePadrao from '../assets/img/iconePadrao.svg';
 import LoginForm from './login';
 

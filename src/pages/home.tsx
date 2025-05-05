@@ -4,12 +4,12 @@ import '../assets/css/container.css';
 import '../assets/css/status.css';
 
 import React from 'react';
-import Chat from '../components/chat/Chat';
-import MenuContainer from '../components/menu/MenuContainer';
+import { Chat } from '../features/chat';
+import { Menu } from '../features/menu';
+
 import useUserId from '../hooks/useUserId';
 
-//@ts-expect-error ignorar img 
-import iconeChat from '../assets/img/chat2.svg'; 
+import iconeChat from '../assets/img/chat2.svg';
 
 const Home: React.FC = () => {
   const idUser = useUserId();
@@ -24,18 +24,18 @@ const Home: React.FC = () => {
   };
 
   return (
-    <section className='conteinerHome'> 
+    <section className='conteinerHome'>
       <div className="menu">
-        <MenuContainer onSelectContact={handleSelectContact} />
+        <Menu onSelectContact={handleSelectContact} />
       </div>
       <div className='bodyContainer'>
         {selectedChatId ? (
           <Chat 
-            selectedChatId={selectedChatId}
-            selectedChatIsGroup={selectedChatIsGroup} 
+            chatId={selectedChatId}
+            isGroup={selectedChatIsGroup}
+            userId={idUser}
             showContactDetails={showContactDetails}
             setShowContactDetails={setShowContactDetails}
-            idUser={idUser}
           />
         ) : (
           <div className='noContatos'>
@@ -45,7 +45,7 @@ const Home: React.FC = () => {
         )}
       </div>
     </section>
-  );
-};
+   );
+ };
 
-export default Home;
+ export default Home;

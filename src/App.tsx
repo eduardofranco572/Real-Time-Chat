@@ -4,7 +4,6 @@ import LoginForm from './pages/login';
 import CadastroForm from './pages/cadastrar';
 import Home from './pages/home'; 
 import ProtectedRoute from './controllers/ProtectedRoute';
-// import PublicRoute from './assets/controllers/PublicRoute';
 
 const App = () => {
     return (

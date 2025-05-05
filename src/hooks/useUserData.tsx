@@ -1,11 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { API_URL } from '../config';
-
-export interface UserData {
-  nome: string;
-  descricao: string;
-  imageUrl: string;
-}
+import { getUserDataService, updateUserDataService, UserData } from '../services/userService';
 
 const iconePadrao = '/assets/img/iconePadrao.svg';
 
@@ -18,58 +12,25 @@ const useUserData = (idUser: string) => {
 
   const fetchUserData = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/contacts/InfoUser`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idUser }),
+      const data = await getUserDataService(idUser);
+      setUserData({
+        nome: data.nome,
+        descricao: data.descricao,
+        imageUrl: data.imageUrl || iconePadrao,
       });
-
-      if (!response.ok) {
-        throw new Error(`Erro HTTP! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.message === 'ok') {
-        setUserData({
-          nome: data.nome,
-          descricao: data.descricao,
-          imageUrl: data.imageUrl || iconePadrao,
-        });
-      }
-      
     } catch (error) {
       console.error('Erro ao buscar dados do usuário:', error);
     }
   }, [idUser]);
 
   useEffect(() => {
-    if (idUser) {
-      fetchUserData();
-    }
-
+    if (idUser) fetchUserData();
   }, [fetchUserData, idUser]);
 
   const updateUserData = useCallback(
     async (nome: string, descricao: string, imageFile?: File) => {
       try {
-        const formData = new FormData();
-        formData.append('idUser', idUser);
-        formData.append('nome', nome);
-        formData.append('descricao', descricao);
-
-        if (imageFile) {
-          formData.append('img', imageFile);
-        }
-
-        const response = await fetch(`${API_URL}/api/contacts/UpdateUser`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Erro ao atualizar dados. Status: ${response.status}`);
-        }
-
+        await updateUserDataService({ idUser, nome, descricao, imageFile });
         await fetchUserData();
       } catch (error) {
         console.error('Erro ao atualizar dados:', error);

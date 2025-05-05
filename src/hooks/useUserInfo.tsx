@@ -1,52 +1,35 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '../config';
+import { useState, useEffect } from 'react'
+import { getUserDataService, UserData } from '../services/userService'
 
-interface UserInfo {
-  nome: string;
-  descricao: string;
-  imageUrl: string;
-}
+const defaultImage = '/assets/img/iconePadrao.svg'
+const defaultDesc = 'Mensagem Padrão'
 
-const useUserInfo = (idUser: number | string | null) => {
-  const [userInfo, setUserInfo] = useState<UserInfo>({
+const useUserInfo = (idUser: number | string | null): UserData => {
+  const [userInfo, setUserInfo] = useState<UserData>({
     nome: '',
-    descricao: '',
-    imageUrl: ''
-  });
+    descricao: defaultDesc,
+    imageUrl: defaultImage
+  })
 
   useEffect(() => {
     async function fetchUserInfo() {
-      if (!idUser) return;
-
-      const dataJSON = JSON.stringify({ idUser });
+      if (!idUser) return
 
       try {
-        const response = await fetch(`${API_URL}/api/contacts/InfoUser`, {
-          method: 'POST',
-          body: dataJSON,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-        });
-
-        const result = await response.json();
-
-        if (result.message === 'ok') {
-          setUserInfo({
-            nome: result.nome,
-            descricao: result.descricao || 'Mensagem Padrão',
-            imageUrl: result.imageUrl || ''
-          });
-        }
+        const data = await getUserDataService(idUser.toString())
+        setUserInfo({
+          nome: data.nome,
+          descricao: data.descricao || defaultDesc,
+          imageUrl: data.imageUrl || defaultImage
+        })
       } catch (error) {
-        console.error('Erro ao buscar informações do usuário: ', error);
+        console.error('Erro ao buscar informações do usuário:', error)
       }
     }
+    fetchUserInfo()
+  }, [idUser])
 
-    fetchUserInfo();
-  }, [idUser]);
-
-  return userInfo;
+  return userInfo
 }
 
-export default useUserInfo;
+export default useUserInfo

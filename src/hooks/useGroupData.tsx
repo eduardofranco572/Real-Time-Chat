@@ -1,14 +1,14 @@
-import { useState, useCallback, useEffect } from 'react'
-import { API_URL } from '../config'
+import { useState, useEffect, useCallback } from 'react'
 import { io } from 'socket.io-client'
+import { API_URL } from '../config'
+import {
+  getGroupInfoService,
+  updateGroupService,
+  addParticipantsService,
+  leaveGroupService,
+  GroupData
+} from '../services/groupService'
 
-export interface GroupData {
-  nome: string
-  descricaoGrupo: string
-  imgUrl: string
-}
-
-const defaultImg = '/assets/img/grupoPadrao.svg'
 const socket = io(API_URL)
 
 const useGroupData = (
@@ -17,26 +17,21 @@ const useGroupData = (
 ) => {
   const [groupData, setGroupData] = useState<GroupData>({
     nome: '',
-    descricaoGrupo: '',
-    imgUrl: defaultImg,
+    descricao: '',
+    imageUrl: '',
+    members: []
   })
 
   const fetchGroupData = useCallback(async () => {
     if (!idChat || !isGroup) return
     try {
-      const res = await fetch(`${API_URL}/api/group/getGroupInfo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idChat }),
+      const data = await getGroupInfoService(idChat)
+      setGroupData({
+        nome: data.nome,
+        descricao: data.descricao,
+        imageUrl: data.imageUrl,
+        members: data.members
       })
-      if (!res.ok) throw new Error(res.statusText)
-
-      const data = await res.json()
-      const nome = data.group?.nome || ''
-      const descricao = data.group?.descricao || ''
-      const imgUrl = data.group?.imageUrl || defaultImg
-
-      setGroupData({ nome, descricaoGrupo: descricao, imgUrl })
     } catch (err) {
       console.error('Erro ao buscar grupo:', err)
     }
@@ -48,8 +43,8 @@ const useGroupData = (
 
   useEffect(() => {
     if (!isGroup) return
-    const onGroupUpdated = (data: { idChat: number; nomeGrupo?: string; descricaoGrupo?: string }) => {
-      if (data.idChat !== idChat) return
+    const onGroupUpdated = (payload: { idChat: number }) => {
+      if (payload.idChat !== idChat) return
       fetchGroupData()
     }
 
@@ -60,26 +55,14 @@ const useGroupData = (
   }, [idChat, isGroup, fetchGroupData])
 
   const updateGroupData = useCallback(
-    async ({ descricaoGrupo, nomeGrupo, imageFile }: {
+    async (args: {
       descricaoGrupo?: string
       nomeGrupo?: string
       imageFile?: File
     }) => {
       if (!idChat || !isGroup) return
-
       try {
-        const form = new FormData()
-        form.append('idChat', idChat.toString())
-        if (descricaoGrupo != null) form.append('descricaoGrupo', descricaoGrupo)
-        if (nomeGrupo != null) form.append('nomeGrupo', nomeGrupo)
-        if (imageFile != null) form.append('imgGrupo', imageFile)
-
-        const res = await fetch(`${API_URL}/api/group/UpdateGroup`, {
-          method: 'POST',
-          body: form,
-        })
-        if (!res.ok) throw new Error(res.statusText)
-
+        await updateGroupService({ idChat, ...args })
         await fetchGroupData()
       } catch (err) {
         console.error('Erro ao atualizar grupo:', err)
@@ -92,13 +75,7 @@ const useGroupData = (
     async (participantIds: number[]) => {
       if (!idChat || !isGroup || participantIds.length === 0) return
       try {
-        const res = await fetch(`${API_URL}/api/group/addParticipant`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idChat, participantIds }),
-        })
-        if (!res.ok) throw new Error(res.statusText)
-
+        await addParticipantsService(idChat, participantIds)
         await fetchGroupData()
       } catch (err) {
         console.error('Erro ao adicionar participantes:', err)
@@ -111,14 +88,7 @@ const useGroupData = (
     async (idUser: number) => {
       if (!idChat || !isGroup) return
       try {
-        const res = await fetch(`${API_URL}/api/group/leaveGroup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idChat, idUser }),
-        })
-
-        if (!res.ok) throw new Error('Erro ao sair do grupo')
-        
+        await leaveGroupService(idChat, idUser)
         await fetchGroupData()
       } catch (err) {
         console.error('Erro ao sair do grupo:', err)

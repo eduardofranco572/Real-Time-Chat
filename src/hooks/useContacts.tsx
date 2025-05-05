@@ -1,21 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import io from 'socket.io-client';
 import { API_URL } from '../config';
-import { ChatItem } from '../components/ContactList';
+import { ChatItem } from '../features/ContactList';
+import { fetchContactsService, RawContact } from '../services/contactsService';
 
 const socket = io(API_URL);
-
-interface RawContact {
-  id: number;
-  nome: string;
-  imageUrl: string;
-  mensagem?: string;
-  mediaUrl?: string;
-  lastMessageAt?: string;
-  chatId: number;
-  isGroup: boolean;
-  lastSenderName?: string;
-}
 
 const useContacts = (idUser: number | string | null) => {
   const [items, setItems] = useState<ChatItem[]>([]);
@@ -24,38 +13,19 @@ const useContacts = (idUser: number | string | null) => {
     if (!idUser) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/api/contacts/PegaContatos`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idUser }),
-        }
-      );
-      const { message, lista }: { message: string; lista: RawContact[] } = await response.json();
-
-      if (message === 'ok' && Array.isArray(lista)) {
-        const uniqueLista = lista.reduce<RawContact[]>((acc, item) => {
-          if (!acc.some(x => x.chatId === item.chatId)) {
-            acc.push(item);
-          }
-          return acc;
-        }, []);
-
-        const mapped: ChatItem[] = uniqueLista.map(i => ({
-          id: i.id,
-          nome: i.nome,
-          imageUrl: i.imageUrl,
-          mensagem: i.mensagem,
-          mediaUrl: i.mediaUrl,
-          lastMessageAt: i.lastMessageAt,
-          chatId: i.chatId,
-          isGroup: !!i.isGroup,
-          lastSenderName: i.lastSenderName || '',
-        }));
-
-        setItems(mapped);
-      }
+      const lista: RawContact[] = await fetchContactsService(idUser);
+      const mapped: ChatItem[] = lista.map(i => ({
+        id: i.id,
+        nome: i.nome,
+        imageUrl: i.imageUrl,
+        mensagem: i.mensagem,
+        mediaUrl: i.mediaUrl,
+        lastMessageAt: i.lastMessageAt,
+        chatId: i.chatId,
+        isGroup: !!i.isGroup,
+        lastSenderName: i.lastSenderName || '',
+      }));
+      setItems(mapped);
     } catch (error) {
       console.error('Erro ao buscar contatos e grupos:', error);
     }
