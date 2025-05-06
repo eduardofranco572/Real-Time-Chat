@@ -6,9 +6,9 @@ import { MdDownloading } from 'react-icons/md'
 import MessageOption from '../Messages/MessageOption'
 import EditMessagePopup from '../Messages/EditMessagePopup'
 import ImageModal from './ImageModal'
+import VoiceNotePlayer from './VoiceNotePlayer'
 
 import iconePadrao from '../../../../assets/img/iconePadrao.svg'
-
 import { Message } from '../../types'
 
 export interface MessageContainerProps {
@@ -120,10 +120,16 @@ const MessageContainer: React.FC<MessageContainerProps> = ({
 
                 {message.mediaUrl && (
                   <div className="media-content">
-                    {message.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                    {message.mediaUrl.match(/\.(mp4)$/i) ? (
                       <video
                         controls
                         src={`${message.mediaUrl}?t=${Date.now()}`}
+                        style={{ maxWidth: '100%', borderRadius: 8 }}
+                      />
+                    ) : message.mediaUrl.match(/\.(webm|wav|mp3|ogg)$/i) ? (
+                      <VoiceNotePlayer
+                        key={message.id}
+                        url={message.mediaUrl}
                       />
                     ) : message.mediaUrl.match(/\.(pdf|doc|docx|txt)$/i) ? (
                       <div className="documentMessage">
@@ -138,11 +144,11 @@ const MessageContainer: React.FC<MessageContainerProps> = ({
                           <MdDownloading />
                         </a>
                       </div>
-                    ) : (
+                    ) : ( 
                       <img
                         src={`${message.mediaUrl}?t=${Date.now()}`}
                         alt="Conteúdo Anexo"
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', maxWidth: '100%', borderRadius: 8 }}
                         onClick={() => setSelectedImage(message.mediaUrl!)}
                       />
                     )}

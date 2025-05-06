@@ -432,10 +432,10 @@
 }
 
 .media-content{
-    max-width: 18rem;
+    width: 16rem;
     word-wrap: break-word; 
     overflow-wrap: break-word; 
-    white-space: pre-wrap;
+    max-width: 100%;
 }
 
 .popUpEditar{
@@ -666,6 +666,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 13rem;
 }
 
 .message-header {
@@ -1159,4 +1160,50 @@
 
 .alingFooterUploader{
     width: 100%;
+}
+
+/* audio */
+.voice-note {
+    display: flex;
+    align-items: center;
+    background: #1d1e1d;
+    border-radius: 10px;
+    padding: 4px 8px;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.vn-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.vn-waveform {
+    flex: 1;
+    position: relative;
+    height: 40px;
+    width: 100%;  
+    cursor: pointer;  
+}
+
+.vn-waveform canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.vn-time {
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.vn-time-total {
+    opacity: 0.6;
+    margin-left: 4px;
 }

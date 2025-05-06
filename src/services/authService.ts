@@ -1,6 +1,5 @@
 import { API_URL } from '../config'
 
-/** Pega o ID do usuário logado (rota protegida) */
 export async function fetchUserIdService(): Promise<number> {
   const res = await fetch(`${API_URL}/api/auth/protected`, {
     method: 'GET',

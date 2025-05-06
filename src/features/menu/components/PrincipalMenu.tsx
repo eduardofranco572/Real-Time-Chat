@@ -102,7 +102,6 @@ const PrincipalMenu: React.FC<PrincipalMenuProps> & {
   )
 }
 
-// anexa o ContactForm como sub-componente
 PrincipalMenu.AddContactForm = ContactForm
 
 export default PrincipalMenu

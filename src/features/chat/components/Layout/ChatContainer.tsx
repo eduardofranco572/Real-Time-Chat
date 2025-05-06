@@ -129,6 +129,8 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
 
         <section className="footerChat">
           <ChatFooter
+            chatId={chatId}
+            userId={userId!}
             onSendText={text => sendText(chatId, userId!, text, ui.replyingMessage?.id)}
             onToggleMedia={() => dispatch({ type: 'TOGGLE_MEDIA_UPLOADER' })}
             onToggleDocs={() => dispatch({ type: 'TOGGLE_DOCS_UPLOADER' })}

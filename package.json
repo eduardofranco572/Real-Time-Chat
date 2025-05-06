@@ -35,7 +35,8 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.12.4",
-    "tsx": "^4.7.3"
+    "tsx": "^4.7.3",
+    "wavesurfer.js": "^7.9.5"
   },
   "devDependencies": {
     "@rollup/plugin-image": "^3.0.3",

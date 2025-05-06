@@ -12,7 +12,7 @@ export default function useMessages(
   const [hasMore, setHasMore] = useState(true);
   const beforeIdRef = useRef<number | null>(null);
 
-  const socket = useRef(io(API_URL)).current;
+  const socketRef = useRef(io(API_URL));
 
   const fetchInitial = useCallback(async () => {
     if (!chatId) return;
@@ -45,7 +45,10 @@ export default function useMessages(
       beforeId: beforeIdRef.current
     });
 
-    setMessages(prev =>[ ...older.filter(o => !prev.some(p => p.id === o.id)), ...prev ]);
+    setMessages(prev => [
+      ...older.filter(o => !prev.some(p => p.id === o.id)),
+      ...prev
+    ]);
 
     setHasMore(more);
 
@@ -62,18 +65,36 @@ export default function useMessages(
   useEffect(() => {
     if (!chatId) return;
 
-    const handler = (msg: Message) => {
-      if ( msg.idChat === chatId && !messages.some(m => m.id === msg.id)) {
+    const socket = socketRef.current;
+
+    const handleNewMessage = (msg: Message) => {
+      if (msg.idChat === chatId && !messages.some(m => m.id === msg.id)) {
         setMessages(prev => [...prev, msg]);
       }
     };
 
-    socket.on('newMessage', handler);
+    const handleDeleted = (payload: { id: number }) => {
+      setMessages(prev => prev.filter(m => m.id !== payload.id));
+    };
+
+    const handleUpdated = (payload: { id: number; message: string }) => {
+      setMessages(prev =>
+        prev.map(m =>
+          m.id === payload.id ? { ...m, mensagem: payload.message } : m
+        )
+      );
+    };
+
+    socket.on('newMessage', handleNewMessage);
+    socket.on('messageDeleted', handleDeleted);
+    socket.on('messageUpdated', handleUpdated);
 
     return () => {
-      socket.off('newMessage', handler);
+      socket.off('newMessage', handleNewMessage);
+      socket.off('messageDeleted', handleDeleted);
+      socket.off('messageUpdated', handleUpdated);
     };
-  }, [chatId, socket, messages]);
+  }, [chatId, messages]);
 
   return {
     messages,

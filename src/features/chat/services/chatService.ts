@@ -100,7 +100,7 @@ export async function sendDocs(params: {
   form.append('idUser', String(params.userId))
   form.append('message', params.caption)
   form.append('replyTo', String(params.replyTo ?? ''))
-  form.append('mediaChat', params.file)
+  form.append('mediaChat', params.file) 
 
   const res = await fetch(`${API_URL}/api/chat/salvarDocument`, { method: 'POST', body: form })
   if (!res.ok) {

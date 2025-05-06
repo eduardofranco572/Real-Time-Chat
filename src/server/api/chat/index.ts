@@ -69,6 +69,26 @@ const uploadDocs = multer({
   }
 });
 
+const storageAudio = multer.diskStorage({
+  destination(req, _file, cb) {
+    const idUser = req.body.idUser;
+    if (!idUser) return cb(new Error('idUser é obrigatório'), '');
+    const folder = path.join('upload', 'audio', idUser.toString());
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+    cb(null, folder);
+  },
+  filename(_req, file, cb) {
+    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const uploadAudio = multer({
+  storage: storageAudio,
+  fileFilter(_req, file, cb) {
+    cb(null, file.mimetype.startsWith('audio/'));
+  }
+});
+
 const isLink = (text: string): boolean =>
   text.startsWith('http://') || text.startsWith('https://') || text.includes('.com');
 
@@ -222,39 +242,48 @@ router.delete('/excluirMensagem', (req: Request, res: Response) => {
   const { id } = req.body;
   if (!id) return res.status(400).send({ error: 'ID da mensagem não fornecido' });
 
-  const sqlSelect = 'SELECT mediaUrl FROM chat_messages WHERE id = ?';
-  db.query(sqlSelect, [id], (err, results: any[]) => {
-    if (err) {
-      console.error('Erro ao buscar a mensagem:', err);
-      return res.status(500).send({ error: 'Erro ao buscar a mensagem para exclusão' });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).send({ error: 'Mensagem não encontrada' });
-    }
-
-    const mediaUrl = results[0].mediaUrl;
-    const sqlDelete = 'DELETE FROM chat_messages WHERE id = ?';
-    db.query(sqlDelete, [id], (err2) => {
-      if (err2) {
-        console.error('Erro ao excluir a mensagem do banco:', err2);
-        return res.status(500).send({ error: 'Erro ao excluir a mensagem' });
+  db.query(
+    'SELECT mediaUrl FROM chat_messages WHERE id = ?',
+    [id],
+    (err, results: any[]) => {
+      if (err) {
+        console.error('Erro ao buscar a mensagem:', err);
+        return res.status(500).send({ error: 'Erro ao buscar mensagem para exclusão' });
       }
-      
-      if (mediaUrl) {
-        const filePath = join(__dirname, '../../', mediaUrl);
-        if (fs.existsSync(filePath)) {
-          fs.unlink(filePath, unlinkErr => {
-            if (unlinkErr) console.error('Erro ao excluir arquivo:', unlinkErr);
+      if (results.length === 0) {
+        return res.status(404).send({ error: 'Mensagem não encontrada' });
+      }
+
+      const mediaUrl: string | null = results[0].mediaUrl;
+      db.query('DELETE FROM chat_messages WHERE id = ?', [id], err2 => {
+        if (err2) {
+          console.error('Erro ao excluir a mensagem do banco:', err2);
+          return res.status(500).send({ error: 'Erro ao excluir a mensagem' });
+        }
+        
+        if (mediaUrl) {
+          const relativePath = mediaUrl.startsWith('/')
+            ? mediaUrl.slice(1)
+            : mediaUrl;
+
+          const filePath = path.join(process.cwd(), relativePath);
+          fs.access(filePath, fs.constants.F_OK, accessErr => {
+            if (!accessErr) {
+              fs.unlink(filePath, unlinkErr => {
+                if (unlinkErr) {
+                  console.error('Erro ao excluir arquivo:', unlinkErr);
+                }
+              });
+            }
           });
         }
-      }
 
-      const io = req.app.get('io');
-      io.emit('messageDeleted', { id });
-      res.send({ message: 'Mensagem e mídia excluídas com sucesso' });
-    });
-  });
+        const io = req.app.get('io');
+        io.emit('messageDeleted', { id });
+        res.send({ message: 'Mensagem e mídia excluídas com sucesso' });
+      });
+    }
+  );
 });
 
 router.put('/editarMensagem', (req: Request, res: Response) => {
@@ -360,6 +389,59 @@ router.post('/salvarDocument', uploadDocs.single('mediaChat'), (req, res) => {
       io.emit('newMessage', newMessage);
       res.send({ message: 'Documento enviado com sucesso', id: result.insertId });
     });
+  });
+});
+
+router.post('/uploadAudio', uploadAudio.single('audio'), (req, res) => {
+  const idChat = parseInt(req.body.idChat, 10);
+  const idUser = parseInt(req.body.idUser, 10);
+  if (isNaN(idChat) || isNaN(idUser)) {
+    return res.status(400).json({ error: 'idChat e idUser precisam ser números.' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'Áudio não enviado.' });
+  }
+
+  const mediaUrl = req.file.path.replace(/\\\\/g, '/');
+  const sql = `
+    INSERT INTO chat_messages
+      (idChat, idUser, mensagem, link, replyTo, mediaUrl, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?, NOW())
+  `;
+  const params = [idChat, idUser, '', false, null, mediaUrl];
+
+  db.query(sql, params, (err, result: any) => {
+    if (err) return res.status(500).json({ error: 'Erro ao salvar áudio.' });
+
+    db.query(
+      `SELECT nome, img AS imageFilename FROM usuario WHERE id = ?`,
+      [idUser],
+      (err2, rows: any[]) => {
+        const nomeContato = rows?.[0]?.nome ?? 'Desconhecido';
+        const filename    = rows?.[0]?.imageFilename;
+        const imageUrl    = filename
+          ? `/upload/imagensUser/${filename}`
+          : '/upload/imagensUser/default.png';
+
+        const newMessage = {
+          id:        result.insertId,
+          idChat,
+          idUser,
+          mensagem:  '',
+          link:      false,
+          replyTo:   null,
+          mediaUrl,
+          nomeContato,
+          imageUrl,
+          createdAt: new Date().toISOString()
+        };
+
+        const io = req.app.get('io');
+        io.emit('newMessage', newMessage);
+
+        res.json({ message: 'Áudio enviado com sucesso', id: result.insertId });
+      }
+    );
   });
 });
 
