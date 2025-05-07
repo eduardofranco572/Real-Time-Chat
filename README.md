@@ -15,7 +15,6 @@
  <div align="center">
      <h1>Imagens do Projeto</h1>
     <br>
-    <br>
     <img src="/imagensDemo/container.jpeg">
     <br>
     <br>
@@ -23,7 +22,6 @@
     <br>
     <br>
      <img src="/imagensDemo/mobile.png">  
-    <br>
     <br>
  </div>
    <div align="start">
@@ -36,25 +34,14 @@
  
  <div align="center">
     <br>
-    <br>
     <img src="/imagensDemo/frontend.jpeg">
     <br>
     <br>
     <img src="/imagensDemo/backend.jpeg">
     <br>
-    <br>
 </div>
 <br>
 <p align="justify">
-
-
-### Desafios Encontrados
-<div align="justify">
-  
-  Um dos principais desafios enfrentados foi a necessidade de um domínio online para consumir a API `webhook`. Após extensas pesquisas, optei por utilizar o `Ngrok`, que possibilitou a criação de um túnel do ambiente `localhost`, permitindo que as requisições fossem acessíveis na web e que todos os testes necessários fossem realizados.
-
-  Outro desafio significativo foi a implementação da lógica de auto login, que integra a validação dos streaks dos usuários com o cálculo da experiência. Essa solução garantiu a correta contagem dos dias consecutivos de acesso (desconsiderando os domingos) e impediu que o streak fosse incrementado mais de uma vez por dia, entre outras validações detalhadas.
-</div>
 
 ### Melhoria para o futuro
 
