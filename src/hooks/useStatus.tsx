@@ -30,7 +30,7 @@ const useStatus = (): UseStatusResult => {
   const refreshStatuses = useCallback(async () => {
     if (!idUser) return;
     setLoading(true);
-    setError(null);
+    setError(null) 
     try {
       const all = await fetchMyStatusesService(idUser);
       setStatuses(all);

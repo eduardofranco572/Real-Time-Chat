@@ -18,9 +18,14 @@ export async function fetchMyStatusesService(idUser: number): Promise<Status[]> 
   const res = await fetch(`${API_URL}/api/status/getStatus/${idUser}`)
   const data = await res.json()
 
+  if (data.message === 'Nenhum status encontrado') {
+    return []
+  }
+
   if (!res.ok || data.message !== 'ok' || !Array.isArray(data.statuses)) {
     throw new Error(data.error || `Erro ao buscar meus statuses: ${res.status}`)
   }
+
   return data.statuses as Status[]
 }
 
@@ -48,7 +53,12 @@ export async function fetchCoverStatusService(
   const json = await res.json()
   
   if (!res.ok) throw new Error(json.error || `Status ${res.status}`)
-  return json.statusImage ? { imageUrl: json.statusImage } : null
+
+  const defaultIcon = '../assets/img/iconePadrao.svg'
+  if (!json.statusImage || json.statusImage === defaultIcon) {
+    return null
+  }
+  return { imageUrl: json.statusImage }
 }
 
 export async function fetchUserStatusesService(

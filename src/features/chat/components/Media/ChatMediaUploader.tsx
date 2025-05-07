@@ -9,6 +9,7 @@ interface ChatMediaUploaderProps {
 const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onClose }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [caption, setCaption] = useState<string>('');
+  const [mediaURL, setMediaURL] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoClickedRef = useRef<boolean>(false);
 
@@ -16,6 +17,18 @@ const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onCl
     if (!selectedFile && inputRef.current && !autoClickedRef.current) {
       autoClickedRef.current = true;
       inputRef.current.click();
+    }
+  }, [selectedFile]);
+
+  useEffect(() => {
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setMediaURL(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+        setMediaURL(null);
+      };
     }
   }, [selectedFile]);
 
@@ -32,7 +45,7 @@ const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onCl
       onSendMedia(selectedFile, caption);
       onClose();
     } else {
-      alert("Nenhum arquivo selecionado!");
+      alert('Nenhum arquivo selecionado!');
     }
   };
 
@@ -46,7 +59,7 @@ const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onCl
         onChange={handleFileChange}
       />
 
-      {selectedFile && (
+      {selectedFile && mediaURL && (
         <div className="statusUploaderOverlay">
           <div className="statusUploader">
             <div className="BtnCloseSU">
@@ -56,9 +69,9 @@ const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onCl
             </div>
             <div className="mediaPreview">
               {selectedFile.type.startsWith('video/') ? (
-                <video controls src={URL.createObjectURL(selectedFile)} />
+                <video controls src={mediaURL} />
               ) : (
-                <img src={URL.createObjectURL(selectedFile)} alt="Pré-visualização do arquivo" />
+                <img src={mediaURL} alt="Pré-visualização do arquivo" />
               )}
             </div>
             <div className="legenda">
@@ -67,7 +80,7 @@ const ChatMediaUploader: React.FC<ChatMediaUploaderProps> = ({ onSendMedia, onCl
                 type="text"
                 placeholder="Digite uma mensagem"
                 value={caption}
-                onChange={(e) => setCaption(e.target.value)}
+                onChange={e => setCaption(e.target.value)}
               />
             </div>
             <div className="btnPostar">

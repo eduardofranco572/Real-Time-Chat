@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { IoMdClose } from "react-icons/io";
+import React, { useState, useEffect } from 'react';
+import { IoMdClose } from 'react-icons/io';
 
 interface StatusUploaderProps {
   onSaveStatus: (file: File, caption: string) => void;
@@ -7,8 +7,24 @@ interface StatusUploaderProps {
   uploadedMedia: File | null;
 }
 
-const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, uploadedMedia }) => {
-  const [caption, setCaption] = useState<string>('');
+const StatusUploader: React.FC<StatusUploaderProps> = ({
+  onSaveStatus,
+  onClose,
+  uploadedMedia,
+}) => {
+  const [caption, setCaption] = useState('');
+  const [mediaURL, setMediaURL] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (uploadedMedia) {
+      const url = URL.createObjectURL(uploadedMedia);
+      setMediaURL(url);
+      return () => {
+        URL.revokeObjectURL(url);
+        setMediaURL(null);
+      };
+    }
+  }, [uploadedMedia]);
 
   const handleSave = () => {
     if (uploadedMedia) {
@@ -17,20 +33,25 @@ const StatusUploader: React.FC<StatusUploaderProps> = ({ onSaveStatus, onClose, 
       alert('Nenhum arquivo foi selecionado!');
     }
   };
-  
+
   return (
     <div className="statusUploaderOverlay">
       <div className="statusUploader">
         <div className="BtnCloseSU">
-          <button onClick={onClose}><IoMdClose /></button>
+          <button onClick={onClose}>
+            <IoMdClose />
+          </button>
         </div>
 
-        {uploadedMedia && (
+        {mediaURL && (
           <div className="mediaPreview">
-            {uploadedMedia.type.startsWith('video/') ? (
-              <video controls src={URL.createObjectURL(uploadedMedia)} />
+            {uploadedMedia!.type.startsWith('video/') ? (
+              <video controls src={mediaURL} />
             ) : (
-              <img src={URL.createObjectURL(uploadedMedia)} alt="Pré-visualização do Status" />
+              <img
+                src={mediaURL}
+                alt="Pré-visualização do Status"
+              />
             )}
           </div>
         )}

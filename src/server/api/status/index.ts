@@ -97,22 +97,18 @@ router.get('/getUserStatuses/:idContato', (req: Request, res: Response) => {
 
   const sql = `
     SELECT 
-      status.id,
-      status.imgStatus,
-      status.legenda,
-      usuario.img AS imgContato
+      S.id,
+      S.imgStatus,
+      S.legenda,
+      U.img AS imgContato
     FROM 
-      status
-    INNER JOIN 
-      contatos
-    ON 
-      contatos.idContato = status.idAutor
+      status S
     LEFT JOIN 
-      usuario
+      usuario U
     ON 
-      usuario.id = contatos.idContato
+      U.id = S.idAutor
     WHERE 
-      status.idAutor = ?;
+      S.idAutor = ?
   `;
 
   db.query(sql, [idContato], (err, results) => {
