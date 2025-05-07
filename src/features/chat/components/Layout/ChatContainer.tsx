@@ -1,7 +1,4 @@
 import React, { useRef, useEffect, useReducer } from 'react';
-import io from 'socket.io-client';
-import { API_URL } from '../../../../config';
-
 import {
   ChatHeader,
   MessageContainer,
@@ -29,8 +26,6 @@ interface ChatContainerProps {
   setShowContactDetails: React.Dispatch<React.SetStateAction<boolean>>;
   onBackMobile?: () => void;
 }
-
-const socket = io(API_URL);
 
 const ChatContainer: React.FC<ChatContainerProps> = ({
   chatId,
