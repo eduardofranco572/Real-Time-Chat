@@ -625,7 +625,7 @@
 .documentMessage{
     cursor: pointer;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     background-color: #a3a3a329;
     padding: 14px;
@@ -666,7 +666,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 13rem;
+    max-width: 10rem;
 }
 
 .message-header {
@@ -901,7 +901,7 @@
     align-items: center;
     border-radius: 2rem;
     padding: 2rem;
-    z-index: 1;
+    z-index: 999;
     background-color: var(--color-container);
     border: 1px solid rgba(255, 255, 255, .25);
     backdrop-filter: blur(5px);

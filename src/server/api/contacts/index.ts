@@ -23,45 +23,60 @@ const upload = multer({ storage });
 
 router.post('/addcontato', (req: Request, res: Response) => {
   const { email, nome, idUser } = req.body;
-  const sqlCheckEmail = "SELECT id, nome FROM usuario WHERE email = ?";
-  db.query(sqlCheckEmail, [email], (err, result: any[]) => {
+  if (!email || !nome || !idUser) {
+    return res.status(400).send({ error: 'Campos obrigatórios ausentes' });
+  }
+
+  // encontra idContato pelo email
+  const sqlCheckEmail = 'SELECT id FROM usuario WHERE email = ?';
+  db.query(sqlCheckEmail, [email], (err, users: any[]) => {
     if (err) return res.status(500).send({ error: 'Erro ao verificar o email' });
-    if (!result.length) return res.status(401).send({ error: 'Usuário não encontrado' });
+    if (!users.length) return res.status(401).send({ error: 'Usuário não encontrado' });
 
-    const idContato = result[0].id;
+    const idContato = users[0].id;
 
-    const sqlInsert = "INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)";
-    db.query(sqlInsert, [idUser, idContato, nome], err2 => {
-      if (err2) return res.status(500).send({ error: 'Erro ao cadastrar contato' });
+    // insere nas duas direções em contatos
+    db.query(
+      'INSERT INTO contatos (idUser, idContato, nomeContato) VALUES (?, ?, ?)',
+      [idUser, idContato, nome],
+      err2 => {
+        if (err2) return res.status(500).send({ error: 'Erro ao cadastrar contato' });
 
-      db.query("SELECT nome FROM usuario WHERE ID = ?", [idUser], (errN, nomeRes: any[]) => {
-        const meuNome = !errN && nomeRes[0]?.nome ? nomeRes[0].nome : 'Contato';
-        const sqlReverse = `
-          INSERT INTO contatos (idUser, idContato, nomeContato)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE nomeContato = VALUES(nomeContato)`;
-        db.query(sqlReverse, [idContato, idUser, meuNome], errR => {
-          if (errR) console.error('Reverse insert error:', errR);
+        db.query(
+          `INSERT INTO contatos (idUser, idContato, nomeContato)
+           VALUES (?, ?, ?)
+           ON DUPLICATE KEY UPDATE nomeContato = VALUES(nomeContato)`,
+          [idContato, idUser, nome],
+          errR => {
+            if (errR) console.error('Reverse insert error:', errR);
 
-          //Criar chat
-          db.query("INSERT INTO chats (nomeChat) VALUES (?)", [null], (errC, chatRes: any) => {
-            if (errC) return res.status(500).send({ error: 'Erro ao criar chat' });
-            const idChat = chatRes.insertId;
-            db.query(
-              "INSERT INTO chat_participants (idChat, idUser) VALUES (?, ?), (?, ?)",
-              [idChat, idUser, idChat, idContato],
-              errP => {
-                if (errP) return res.status(500).send({ error: 'Erro ao criar participantes' });
-
-                const io = req.app.get('io');
-                io.emit('newContact', { idUser, idContato, idChat });
-                return res.send({ message: 'Contato e chat criados com sucesso', idChat });
+            //SEMPRE criar um novo chat 1×1
+            db.query('INSERT INTO chats (nomeChat) VALUES (NULL)', [null], (errC, chatRes: any) => {
+              if (errC) {
+                console.error('Erro ao criar chat:', errC);
+                return res.status(500).send({ error: 'Erro ao criar chat' });
               }
-            );
-          });
-        });
-      });
-    });
+              const newChatId = chatRes.insertId;
+
+              //adiciona participantes ao novo chat
+              db.query(
+                'INSERT INTO chat_participants (idChat, idUser) VALUES (?, ?), (?, ?)',
+                [newChatId, idUser, newChatId, idContato],
+                errP => {
+                  if (errP) {
+                    console.error('Erro ao criar participantes:', errP);
+                    return res.status(500).send({ error: 'Erro ao criar participantes' });
+                  }
+
+                  req.app.get('io').emit('newContact', { idUser, idContato, idChat: newChatId });
+                  return res.send({ message: 'Contato e chat pessoal criados com sucesso', idChat: newChatId });
+                }
+              );
+            });
+          }
+        );
+      }
+    );
   });
 });
 
@@ -94,16 +109,16 @@ router.post('/getChatForContact', (req: Request, res: Response) => {
 });
 
 router.post('/PegaContatos', (req: Request, res: Response) => {
-  const { idUser } = req.body
+  const { idUser } = req.body;
   if (!idUser) {
-    return res.status(400).json({ error: 'idUser é obrigatório' })
+    return res.status(400).json({ error: 'idUser é obrigatório' });
   }
 
   const sql = `
     (
       -- contatos individuais
       SELECT
-        C.idContato AS id,
+        C.idContato  AS id,
         C.nomeContato AS nome,
         U.img AS img,
         LM.mensagem,
@@ -115,16 +130,16 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
           FROM chat_participants cp1
           JOIN chat_participants cp2
             ON cp1.idChat = cp2.idChat
-          WHERE cp1.idUser = ?        
+          WHERE cp1.idUser = ?
             AND cp2.idUser = C.idContato
+            AND cp1.idChat NOT IN (SELECT idChat FROM grupos)
           LIMIT 1
         ) AS chatId,
-        FALSE  AS isGroup
+        FALSE AS isGroup
       FROM contatos C
       INNER JOIN usuario U
         ON U.ID = C.idContato
       LEFT JOIN (
-        -- última mensagem de cada chat
         SELECT
           cm.idChat,
           cm.mensagem,
@@ -136,23 +151,22 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
           SELECT idChat, MAX(createdAt) AS createdAt
           FROM chat_messages
           GROUP BY idChat
-        ) t
-          ON cm.idChat = t.idChat
-         AND cm.createdAt = t.createdAt
+        ) t ON cm.idChat = t.idChat
+           AND cm.createdAt = t.createdAt
       ) AS LM
         ON LM.idChat = (
           SELECT cp1.idChat
           FROM chat_participants cp1
           JOIN chat_participants cp2
             ON cp1.idChat = cp2.idChat
-          WHERE cp1.idUser = ?      
+          WHERE cp1.idUser = ?
             AND cp2.idUser = C.idContato
+            AND cp1.idChat NOT IN (SELECT idChat FROM grupos)
           LIMIT 1
         )
       LEFT JOIN usuario U2
         ON U2.ID = LM.senderId
-
-      WHERE C.idUser = ? 
+      WHERE C.idUser = ?
     )
 
     UNION ALL
@@ -186,9 +200,8 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
           SELECT idChat, MAX(createdAt) AS createdAt
           FROM chat_messages
           GROUP BY idChat
-        ) t
-          ON cm.idChat = t.idChat
-         AND cm.createdAt = t.createdAt
+        ) t ON cm.idChat = t.idChat
+           AND cm.createdAt = t.createdAt
       ) AS LM2
         ON LM2.idChat = G.idChat
       LEFT JOIN usuario U3
@@ -196,40 +209,40 @@ router.post('/PegaContatos', (req: Request, res: Response) => {
     )
 
     ORDER BY lastMessageAt DESC;
-  `
+  `;
 
   db.query(
     sql,
     [
       idUser,
       idUser,
+      idUser, 
       idUser,
-      idUser
     ],
     (err, results: any[]) => {
       if (err) {
-        console.error('Erro ao buscar contatos e grupos:', err)
-        return res.status(500).json({ error: 'Erro no servidor' })
+        console.error('Erro ao buscar contatos e grupos:', err);
+        return res.status(500).json({ error: 'Erro no servidor' });
       }
 
       const lista = results.map(item => ({
         id: item.id,
         nome: item.nome,
         imageUrl: item.img
-                  ? `../../upload/${item.isGroup ? 'grupo' : 'imagensUser'}/${item.img}`
-                  : '',
+          ? `../../upload/${item.isGroup ? 'grupo' : 'imagensUser'}/${item.img}`
+          : '',
         mensagem: item.mensagem,
         mediaUrl: item.mediaUrl,
         lastMessageAt: item.lastMessageAt,
         chatId: item.chatId,
         isGroup: !!item.isGroup,
         lastSenderName: item.lastSenderName || '',
-      }))
+      }));
 
-      res.json({ message: 'ok', lista })
+      res.json({ message: 'ok', lista });
     }
-  )
-})
+  );
+});
 
 router.post('/InfoUser', (req: Request, res: Response) => {
   const { idUser } = req.body;

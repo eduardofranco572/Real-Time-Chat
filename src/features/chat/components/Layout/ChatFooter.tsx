@@ -1,4 +1,3 @@
-// src/components/ChatFooter.tsx
 import React, { useState } from 'react'
 import { IoMdPhotos, IoMdSend } from 'react-icons/io'
 import { IoDocumentText } from 'react-icons/io5'

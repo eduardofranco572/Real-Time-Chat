@@ -22,7 +22,6 @@ export default function useAddGroup(idUser: number | null): UseAddGroupReturn {
       }
       try {
         await addGroupService({ idUser, groupName, participantIds, imageFile })
-        alert('Grupo criado com sucesso')
       } catch (err: any) {
         alert('Erro: ' + (err.message || 'desconhecido'))
       }
