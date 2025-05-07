@@ -1,5 +1,7 @@
 # Real Time Chat
-
+<br>
+    <img src="/imagensDemo/gifFinal.gif">
+<br>
 ## Introdução
 <div align="justify">
   
